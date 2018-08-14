@@ -5,7 +5,7 @@
 //Temperature Sensor
 //Messure Temperature in Kelvin
 #define TIT_01 A2
-#define TIT_01_CAL 1.00
+#define TIT_01_CAL 1.00 // (V_T0 / T0)
 
 //Pressure Sensors
 #define PIT_01_ADR 0x76
@@ -21,7 +21,17 @@
 #define GPS_01_INT
 #define GPS_01_ADR 0x10
 
+//Battery Voltage
+#define Battery A3
+#define Battery_Divider 1.15385
+#define Battery_Max 12.6
+#define Battery_Min 8.25
+
 //Functions
+
+//Main Setup Function
+void setup_Sensors(void);
+
 //Temperature Sensor
 float read_TIT_01(void);
 
@@ -38,3 +48,6 @@ void read_IMU_01(void);
 //GPS
 void setup_GPS_01(void);
 void read_GPS_01(void);
+
+//Battery Voltage
+void check_battery(void);

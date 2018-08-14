@@ -5735,7 +5735,7 @@ Switches electronic signals</description>
 <sheet>
 <plain>
 <text x="149.86" y="25.4" size="5.08" layer="94">CONTROLLER AND I/O</text>
-<text x="238.76" y="5.08" size="5.08" layer="94">A</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
 </plain>
 <instances>
 <instance part="C-1" gate="G$1" x="177.8" y="116.84"/>
@@ -5979,7 +5979,7 @@ Switches electronic signals</description>
 <text x="185.42" y="180.34" size="2.54" layer="94">Motors / Servos</text>
 <text x="205.74" y="170.18" size="2.54" layer="94">Gas Valve (M-02)</text>
 <text x="165.1" y="170.18" size="2.54" layer="94">Ballast (M-01)</text>
-<text x="238.76" y="5.08" size="5.08" layer="94">A</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
 <text x="152.4" y="25.4" size="5.08" layer="94">POWER</text>
 </plain>
 <instances>
@@ -6187,7 +6187,7 @@ Switches electronic signals</description>
 <text x="50.8" y="111.76" size="1.778" layer="94">I2C Address: 0x10</text>
 <wire x1="137.16" y1="78.74" x2="0" y2="78.74" width="0.1524" layer="94"/>
 <wire x1="137.16" y1="124.46" x2="137.16" y2="78.74" width="0.1524" layer="94"/>
-<text x="238.76" y="5.08" size="5.08" layer="94">A</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
 <text x="149.86" y="25.4" size="5.08" layer="94">INSTRUMENTATION</text>
 <text x="177.8" y="119.38" size="2.54" layer="94">Iridium / RockBLOCK Module</text>
 <wire x1="137.16" y1="78.74" x2="248.92" y2="78.74" width="0.1524" layer="94"/>

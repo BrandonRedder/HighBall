@@ -1,14 +1,19 @@
-#include "Control.h"
-#include "Communications.h"
 #include "Sensors.h"
 #include "Actuators.h"
+#include "Communications.h"
+#include "Control.h"
+#include "State_Machine.h"
 
-void setup() {
-  // put your setup code here, to run once:
-
+void setup() 
+{
+  setup_Sensors();
+  setup_Actuators();
+  setup_Communications();
+  setup_Control();
+  setup_State_Machine();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-
+void loop() 
+{
+  
 }

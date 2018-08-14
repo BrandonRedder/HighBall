@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.1.1">
+<eagle version="9.1.2">
 <drawing>
 <settings>
-<setting alwaysvectorfont="yes"/>
+<setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.0125" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
@@ -1499,6 +1499,48 @@ STAND-OFF</description>
 </package3d>
 </packages3d>
 </library>
+<library name="SparkFun-Resistors" urn="urn:adsk.eagle:library:532">
+<description>&lt;h3&gt;SparkFun Resistors&lt;/h3&gt;
+This library contains resistors. Reference designator:R. 
+&lt;br&gt;
+&lt;br&gt;
+We've spent an enormous amount of time creating and checking these footprints and parts, but it is &lt;b&gt; the end user's responsibility&lt;/b&gt; to ensure correctness and suitablity for a given componet or application. 
+&lt;br&gt;
+&lt;br&gt;If you enjoy using this library, please buy one of our products at &lt;a href=" www.sparkfun.com"&gt;SparkFun.com&lt;/a&gt;.
+&lt;br&gt;
+&lt;br&gt;
+&lt;b&gt;Licensing:&lt;/b&gt; Creative Commons ShareAlike 4.0 International - https://creativecommons.org/licenses/by-sa/4.0/ 
+&lt;br&gt;
+&lt;br&gt;
+You are welcome to use this library for commercial purposes. For attribution, we ask that when you begin to sell your device using our footprint, you email us with a link to the product being sold. We want bragging rights that we helped (in a very small part) to create your 8th world wonder. We would like the opportunity to feature your device on our homepage.</description>
+<packages>
+<package name="AXIAL-0.3" urn="urn:adsk.eagle:footprint:39622/1" library_version="1">
+<description>&lt;h3&gt;AXIAL-0.3&lt;/h3&gt;
+&lt;p&gt;Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.&lt;/p&gt;</description>
+<wire x1="-2.54" y1="0.762" x2="2.54" y2="0.762" width="0.2032" layer="21"/>
+<wire x1="2.54" y1="0.762" x2="2.54" y2="0" width="0.2032" layer="21"/>
+<wire x1="2.54" y1="0" x2="2.54" y2="-0.762" width="0.2032" layer="21"/>
+<wire x1="2.54" y1="-0.762" x2="-2.54" y2="-0.762" width="0.2032" layer="21"/>
+<wire x1="-2.54" y1="-0.762" x2="-2.54" y2="0" width="0.2032" layer="21"/>
+<wire x1="-2.54" y1="0" x2="-2.54" y2="0.762" width="0.2032" layer="21"/>
+<wire x1="2.54" y1="0" x2="2.794" y2="0" width="0.2032" layer="21"/>
+<wire x1="-2.54" y1="0" x2="-2.794" y2="0" width="0.2032" layer="21"/>
+<pad name="P$1" x="-3.81" y="0" drill="0.9" diameter="1.8796"/>
+<pad name="P$2" x="3.81" y="0" drill="0.9" diameter="1.8796"/>
+<text x="0" y="1.016" size="0.6096" layer="25" font="vector" ratio="20" align="bottom-center">&gt;Name</text>
+<text x="0" y="-1.016" size="0.6096" layer="27" font="vector" ratio="20" align="top-center">&gt;Value</text>
+</package>
+</packages>
+<packages3d>
+<package3d name="AXIAL-0.3" urn="urn:adsk.eagle:package:39658/1" type="box" library_version="1">
+<description>AXIAL-0.3
+Commonly used for 1/4W through-hole resistors. 0.3" pitch between holes.</description>
+<packageinstances>
+<packageinstance name="AXIAL-0.3"/>
+</packageinstances>
+</package3d>
+</packages3d>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -1715,6 +1757,15 @@ design rules under a new name.</description>
 <element name="U$4" library="SparkFun-Hardware" library_urn="urn:adsk.eagle:library:519" package="STAND-OFF" package3d_urn="urn:adsk.eagle:package:38630/1" value="" x="5.08" y="83.82"/>
 <element name="U$5" library="SparkFun-Hardware" library_urn="urn:adsk.eagle:library:519" package="STAND-OFF" package3d_urn="urn:adsk.eagle:package:38630/1" value="" x="166.37" y="5.08"/>
 <element name="U$6" library="SparkFun-Hardware" library_urn="urn:adsk.eagle:library:519" package="STAND-OFF" package3d_urn="urn:adsk.eagle:package:38630/1" value="" x="166.37" y="83.82"/>
+<element name="R1" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" package="AXIAL-0.3" package3d_urn="urn:adsk.eagle:package:39658/1" value="2k" x="-7.62" y="-2.2225">
+<attribute name="PROD_ID" value="RES-08380" x="-7.62" y="-2.2225" size="1.778" layer="27" display="off"/>
+</element>
+<element name="R2" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" package="AXIAL-0.3" package3d_urn="urn:adsk.eagle:package:39658/1" value="20k" x="-7.62" y="-6.0325">
+<attribute name="PROD_ID" value="RES-08380" x="-7.62" y="-6.0325" size="1.778" layer="27" display="off"/>
+</element>
+<element name="R3" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" package="AXIAL-0.3" package3d_urn="urn:adsk.eagle:package:39658/1" value="130k" x="-7.62" y="-9.8425">
+<attribute name="PROD_ID" value="RES-08380" x="-7.62" y="-9.8425" size="1.778" layer="27" display="off"/>
+</element>
 </elements>
 <signals>
 <signal name="VBAT">
@@ -1744,6 +1795,8 @@ design rules under a new name.</description>
 <wire x1="102.235" y1="80.01" x2="104.775" y2="82.55" width="0.508" layer="1"/>
 <wire x1="62.23" y1="80.01" x2="102.235" y2="80.01" width="0.508" layer="1"/>
 <wire x1="167.64" y1="53.975" x2="167.64" y2="53.5178" width="0.508" layer="1"/>
+<contactref element="R2" pad="P$2"/>
+<wire x1="-3.81" y1="-6.0325" x2="2.7178" y2="71.12" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GND">
 <contactref element="VR-01" pad="IN-"/>
@@ -1775,11 +1828,28 @@ design rules under a new name.</description>
 </polygon>
 <via x="106.68" y="60.96" extent="1-16" drill="0.55"/>
 <via x="120.65" y="43.18" extent="1-16" drill="0.55"/>
+<contactref element="R3" pad="P$1"/>
+<wire x1="160.02" y1="23.495" x2="167.64" y2="34.29" width="0" layer="19" extent="1-1"/>
+<wire x1="143.51" y1="38.1" x2="160.02" y2="23.495" width="0" layer="19" extent="1-1"/>
+<wire x1="120.65" y1="43.18" x2="143.51" y2="38.1" width="0" layer="19" extent="1-1"/>
+<wire x1="123.063" y1="55.88" x2="120.65" y2="43.18" width="0" layer="19" extent="1-1"/>
+<wire x1="112.903" y1="55.88" x2="123.063" y2="55.88" width="0" layer="19" extent="1-1"/>
+<wire x1="106.68" y1="60.96" x2="112.903" y2="55.88" width="0" layer="19" extent="1-1"/>
+<wire x1="101.6" y1="67.31" x2="106.68" y2="60.96" width="0" layer="19" extent="1-1"/>
+<wire x1="114.3" y1="71.12" x2="106.68" y2="60.96" width="0" layer="19" extent="1-1"/>
+<wire x1="124.46" y1="71.12" x2="114.3" y2="71.12" width="0" layer="19" extent="1-1"/>
+<wire x1="109.22" y1="24.13" x2="120.65" y2="43.18" width="0" layer="19" extent="1-1"/>
+<wire x1="124.46" y1="19.05" x2="109.22" y2="24.13" width="0" layer="19" extent="1-1"/>
+<wire x1="62.23" y1="67.31" x2="101.6" y2="67.31" width="0" layer="19" extent="1-1"/>
+<wire x1="54.61" y1="67.31" x2="62.23" y2="67.31" width="0" layer="19" extent="1-1"/>
+<wire x1="43.18" y1="60.96" x2="54.61" y2="67.31" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="67.31" x2="43.18" y2="60.96" width="0" layer="19" extent="1-1"/>
+<wire x1="2.54" y1="67.4422" x2="15.24" y2="67.31" width="0" layer="19" extent="1-1"/>
+<wire x1="-11.43" y1="-9.8425" x2="2.54" y2="67.4422" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="VCC_1">
 <contactref element="VR-01" pad="OUT+"/>
 <contactref element="C-1" pad="5V@0"/>
-<contactref element="TIT-01" pad="1"/>
 <contactref element="IMU-01" pad="VBAT"/>
 <contactref element="LC-01" pad="HV"/>
 <contactref element="COMM-01" pad="8"/>
@@ -1798,7 +1868,6 @@ design rules under a new name.</description>
 <wire x1="54.61" y1="85.09" x2="54.61" y2="83.82" width="0.508" layer="16"/>
 <wire x1="160.02" y1="86.36" x2="142.24" y2="86.36" width="0.508" layer="16"/>
 <wire x1="142.24" y1="86.36" x2="55.88" y2="86.36" width="0.508" layer="16"/>
-<wire x1="142.24" y1="77.47" x2="139.7" y2="74.93" width="0.508" layer="16"/>
 <wire x1="142.24" y1="86.36" x2="142.24" y2="77.47" width="0.508" layer="16"/>
 <wire x1="114.3" y1="53.975" x2="113.665" y2="53.34" width="0.508" layer="1"/>
 <wire x1="114.935" y1="53.975" x2="114.3" y2="53.975" width="0.508" layer="1"/>
@@ -1808,8 +1877,10 @@ design rules under a new name.</description>
 <wire x1="124.46" y1="67.945" x2="120.65" y2="64.135" width="0.508" layer="1"/>
 <wire x1="130.175" y1="67.945" x2="124.46" y2="67.945" width="0.508" layer="1"/>
 <wire x1="137.16" y1="74.93" x2="130.175" y2="67.945" width="0.508" layer="1"/>
-<wire x1="139.7" y1="74.93" x2="137.16" y2="74.93" width="0.508" layer="1"/>
 <wire x1="113.665" y1="53.34" x2="113.157" y2="53.34" width="0.508" layer="1"/>
+<contactref element="R1" pad="P$1"/>
+<wire x1="142.24" y1="77.47" x2="137.16" y2="74.93" width="0" layer="19" extent="1-16"/>
+<wire x1="-11.43" y1="-2.2225" x2="40.64" y2="60.96" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="VCC_2">
 <contactref element="VR-02" pad="OUT+"/>
@@ -1839,8 +1910,6 @@ design rules under a new name.</description>
 </signal>
 <signal name="AGND">
 <contactref element="C-1" pad="GND@1"/>
-<contactref element="TIT-01" pad="3"/>
-<wire x1="137.16" y1="69.85" x2="139.7" y2="72.39" width="0.508" layer="16"/>
 <wire x1="132.715" y1="69.85" x2="137.16" y2="69.85" width="0.508" layer="16"/>
 <wire x1="132.715" y1="79.375" x2="132.715" y2="69.85" width="0.508" layer="16"/>
 <wire x1="130.81" y1="81.28" x2="132.715" y2="79.375" width="0.508" layer="1"/>
@@ -1856,11 +1925,11 @@ design rules under a new name.</description>
 <via x="132.715" y="79.375" extent="1-16" drill="0.508"/>
 <via x="63.5" y="78.74" extent="1-16" drill="0.508"/>
 <via x="52.705" y="69.85" extent="1-16" drill="0.508"/>
+<contactref element="TIT-01" pad="1"/>
+<wire x1="137.16" y1="69.85" x2="139.7" y2="74.93" width="0" layer="19" extent="16-16"/>
 </signal>
 <signal name="TIT-01">
 <contactref element="C-1" pad="A2"/>
-<contactref element="TIT-01" pad="2"/>
-<wire x1="133.985" y1="77.47" x2="137.795" y2="73.66" width="0.508" layer="16"/>
 <wire x1="133.35" y1="78.105" x2="133.985" y2="77.47" width="0.508" layer="1"/>
 <wire x1="128.905" y1="78.105" x2="133.35" y2="78.105" width="0.508" layer="1"/>
 <wire x1="127" y1="80.01" x2="128.905" y2="78.105" width="0.508" layer="1"/>
@@ -1871,6 +1940,10 @@ design rules under a new name.</description>
 <wire x1="60.325" y1="62.865" x2="62.23" y2="62.865" width="0.508" layer="1"/>
 <wire x1="58.42" y1="60.96" x2="60.325" y2="62.865" width="0.508" layer="1"/>
 <via x="133.985" y="77.47" extent="1-16" drill="0.508"/>
+<contactref element="R1" pad="P$2"/>
+<contactref element="TIT-01" pad="2"/>
+<wire x1="133.985" y1="77.47" x2="137.795" y2="73.66" width="0" layer="19" extent="1-1"/>
+<wire x1="-3.81" y1="-2.2225" x2="58.42" y2="60.96" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="IMU-01-RX">
 <contactref element="IMU-01" pad="D0/RXI"/>
@@ -2281,6 +2354,13 @@ design rules under a new name.</description>
 <wire x1="167.005" y1="26.67" x2="160.655" y2="20.32" width="0.508" layer="1"/>
 <wire x1="167.64" y1="26.67" x2="167.005" y2="26.67" width="0.508" layer="1"/>
 <via x="115.57" y="15.24" extent="1-16" drill="0.508"/>
+</signal>
+<signal name="VBAT_SENSE">
+<contactref element="R2" pad="P$1"/>
+<contactref element="R3" pad="P$2"/>
+<contactref element="C-1" pad="A3"/>
+<wire x1="-3.81" y1="-9.8425" x2="60.96" y2="60.96" width="0" layer="19" extent="1-1"/>
+<wire x1="-11.43" y1="-6.0325" x2="-3.81" y2="-9.8425" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>
 <mfgpreviewcolors>

@@ -2,4 +2,4 @@
 
 //Functions
 //Main Setup Function
-void setup_Communications(void);
+void setup_State_Machine(void);

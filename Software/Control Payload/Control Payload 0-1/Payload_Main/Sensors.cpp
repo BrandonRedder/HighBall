@@ -1,6 +1,16 @@
 #include "Sensors.h"
 
 //Functions
+//Main Setup Function
+void setup_Sensors(void)
+{
+  setup_PIT_01();
+  setup_PIT_02();
+  setup_IMU_01();
+  setup_GPS_01();
+  check_battery();
+}
+
 //Temperature Sensor
 //Messure Temperature in Kelvin
 float read_TIT_01(void)
@@ -10,7 +20,6 @@ float read_TIT_01(void)
 }
 
 //Pressure Sensors
-
 MS5803 PIT_01(PIT_01_ADR);
 MS5803 PIT_02(PIT_02_ADR);
 double PIT_01_Pressure_Baseline;
@@ -61,5 +70,13 @@ void setup_GPS_01(void)
 void read_GPS_01(void)
 {
   
+}
+
+//Battery Voltage
+float Battery_Percentage;
+void check_battery(void)
+{
+  float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
+  Battery_Percentage = 100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min);
 }
 

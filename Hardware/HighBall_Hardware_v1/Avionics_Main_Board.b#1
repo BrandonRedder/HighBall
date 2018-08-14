@@ -182,6 +182,8 @@
 <text x="163.83" y="16.51" size="1.778" layer="21" rot="R90">Iridium Cable</text>
 <text x="0" y="70.485" size="1.778" layer="25">+</text>
 <text x="0.3175" y="66.675" size="1.778" layer="25">-</text>
+<dimension x1="0" y1="0" x2="0" y2="88.9" x3="-9.525" y3="44.45" textsize="1.778" layer="48" dtype="vertical" unit="inch"/>
+<dimension x1="0" y1="88.9" x2="171.45" y2="88.9" x3="85.725" y3="95.25" textsize="1.778" layer="48" dtype="horizontal" unit="inch"/>
 </plain>
 <libraries>
 <library name="SparkFun-Boards" urn="urn:adsk.eagle:library:509">
