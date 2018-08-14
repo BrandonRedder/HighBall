@@ -1,5 +1,8 @@
 #include <Wire.h>
 #include <SparkFun_MS5803_I2C.h>
+#include <SparkFun_I2C_GPS_Arduino_Library.h>
+#include <TinyGPS++.h>
+
 
 //Constants
 //Temperature Sensor
