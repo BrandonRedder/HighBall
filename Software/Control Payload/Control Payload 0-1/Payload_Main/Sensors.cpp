@@ -77,14 +77,49 @@ float read_PIT_02(void)
 }
 
 //IMU
+MPU9250_DMP imu;
 void setup_IMU_01(void)
 {
-  
-}
+  Serial2.begin(115200); //set baud rate
 
-void read_IMU_01(void)
+  // Check communication with IMU
+  if (imu.begin() != 0)
+  {
+    while(imu.begin() != 0)
+    {
+      Serial2.println("Unable to connect with IMU.");
+      delay(5000);
+    }//end while display
+  }//end if error in connection
+
+  //enable 6-axis quaternion output
+  imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_GYRO_CAL, 50);//check sampling rate
+
+  //enable XYZ magnetometer for absolute orientation determination
+  imu.setSensors(INV_XYZ_COMPASS);
+  imu.setCompassSampleRate(50);//check sampling rate
+}//end setup_IMU_01
+
+IMU_OUTPUT read_IMU_01(void)
 {
-  
+  IMU_OUTPUT updateValues;
+  if ( imu.fifoAvailable() > 0 )//if there is new data
+  {
+    if (imu.dmpUpdateFifo() == 0)//update data
+    {
+      //update orientation
+      imu.update(UPDATE_COMPASS);
+
+      updateValues.xMag = imu.calcMag(imu.mx);
+      updateValues.yMag = imu.calcMag(imu.my);
+      updateValues.xMag = imu.calcMag(imu.mz);
+      updateValues.q0 = imu.qw;
+      updateValues.q1 = imu.qx;
+      updateValues.q2 = imu.qy;
+      updateValues.q3 = imu.qz;
+      }
+  }
+  return updateValues;
 }
 
 //GPS
@@ -107,10 +142,10 @@ void setup_GPS_01(void)
   pinMode(GPS_01_ResetN, OUTPUT);
   pinMode(GPS_01_Wake, OUTPUT);
   pinMode(GPS_01_INT, INPUT);
-  
+
   digitalWrite(GPS_01_ResetN, HIGH);
   digitalWrite(GPS_01_Wake, HIGH);
-  
+
   myI2CGPS.begin()
 
 }
@@ -120,9 +155,9 @@ void read_GPS_01(void)
   /* Read current position using GPS Module */
   digitalWrite(GPS_01_Wake, HIGH); //Wake-up GPS
   delay(50);
-  
+
   while(!digitalRead(GPS_01_INT)); //Wait for GPS to be ready
-  
+
   while (myI2CGPS.available()) //available() returns the number of new bytes available from the GPS module
   {
     GPS_Parser.encode(myI2CGPS.read()); //Feed the GPS parser
@@ -149,4 +184,3 @@ void check_battery(void)
   // explanation about what is doing. 
   Battery_Percentage = 100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min);
 }
-

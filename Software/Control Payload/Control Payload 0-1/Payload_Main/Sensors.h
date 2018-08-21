@@ -2,6 +2,7 @@
 #include <SparkFun_MS5803_I2C.h>
 #include <SparkFun_I2C_GPS_Arduino_Library.h>
 #include <TinyGPS++.h>
+#include <SparkFunMPU9250-DMP.h>
 
 
 //Constants
@@ -48,6 +49,15 @@ float read_PIT_02(void);
 //IMU
 void setup_IMU_01(void);
 void read_IMU_01(void);
+struct IMU_OUTPUT{
+  float xMag = 0;
+  float yMag = 0;
+  float zMag = 0;
+  float q0 = 0;
+  float q1 = 0;
+  float q2 = 0;
+  float q3 = 0;
+}
 
 //GPS
 void setup_GPS_01(void);
