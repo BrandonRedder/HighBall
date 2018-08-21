@@ -10,7 +10,7 @@
 * Kyle Watters
 
 ### Project Sponsor and Advisors  
-___**Sponsor:** MIT Lincoln Laboratories  
+**Sponsor:** MIT Lincoln Laboratories  
 **Point of Contact:** Navid Yazdani  
 
 **Primary Advisor:** Dr. Morris Cohen  
@@ -23,4 +23,5 @@ Algorithms take into account current pressure and temperature conditions when
 venting helium or dropping ballast to estimate altitude changes. This will
 allow for inexpensive controlled balloon flights for a variety of payloads.
 
-
+## TODO
+1. Everything
