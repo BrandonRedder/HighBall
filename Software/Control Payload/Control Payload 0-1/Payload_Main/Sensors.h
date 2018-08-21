@@ -5,6 +5,7 @@
 
 
 //Constants
+// TODOC: These should be explained a bit more
 //Temperature Sensor
 //Messure Temperature in Kelvin
 #define TIT_01 A2
