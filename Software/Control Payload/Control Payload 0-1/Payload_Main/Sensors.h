@@ -1,3 +1,6 @@
+#ifndef SENSORS_H
+#define SENSORS_H
+
 #include <Wire.h>
 #include <SparkFun_MS5803_I2C.h>
 #include <SparkFun_I2C_GPS_Arduino_Library.h>
@@ -9,7 +12,7 @@
 // TODOC: These should be explained a bit more
 //Temperature Sensor
 //Messure Temperature in Kelvin
-#define TIT_01 A2
+#define TIT_01 A2 // What is A2? should it be hex?
 #define TIT_01_CAL 1.00 // (V_T0 / T0)
 
 //Pressure Sensors
@@ -57,7 +60,7 @@ struct IMU_OUTPUT{
   float q1 = 0;
   float q2 = 0;
   float q3 = 0;
-}
+};
 
 //GPS
 void setup_GPS_01(void);
@@ -65,3 +68,5 @@ void read_GPS_01(void);
 
 //Battery Voltage
 void check_battery(void);
+
+#endif /* ifndef SENSORS_H */
