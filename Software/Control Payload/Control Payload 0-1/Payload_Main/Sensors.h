@@ -50,9 +50,8 @@ float read_PIT_01(void);
 float read_PIT_02(void);
 
 //IMU
-void setup_IMU_01(void);
-void read_IMU_01(void);
 struct IMU_OUTPUT{
+  /* Contains x,y,z magnetometer data, and quaternian acceleration data */
   float xMag = 0;
   float yMag = 0;
   float zMag = 0;
@@ -61,6 +60,8 @@ struct IMU_OUTPUT{
   float q2 = 0;
   float q3 = 0;
 };
+void setup_IMU_01(void);
+IMU_OUTPUT read_IMU_01(void);
 
 //GPS
 void setup_GPS_01(void);
