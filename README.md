@@ -24,4 +24,55 @@ venting helium or dropping ballast to estimate altitude changes. This will
 allow for inexpensive controlled balloon flights for a variety of payloads.
 
 ## TODO
-1. Everything
+- [ ] Sensor Code
+  - [ ] Pressure Sensor
+  - [ ] Temperature Sensor
+  - [ ] IMU
+  - [ ] GPS
+  - [ ] Battery Monitoring
+  - [ ] Tests
+- [ ] Sensor Hardware Connections
+  - [ ] Assembly
+  - [ ] Tests
+- [ ] Communication Code
+  - [ ] Setup
+  - [ ] Send Functionality
+  - [ ] Receive Functionality
+  - [ ] Tests
+- [ ] Communication Hardware Connections
+  - [ ] Assembly
+  - [ ] Tests
+- [ ] Actuators Code
+  - [ ] Setup
+  - [ ] Ballast Release
+  - [ ] Hellium Release
+  - [ ] Cutdown
+  - [ ] Tests
+- [ ] Actuator Hardware Connections
+  - [ ] Assembly
+  - [ ] Tests
+- [ ] Final Payload Assembly
+  - [ ] Electronic Assembly
+  - [ ] Mechanical Assembly
+  - [ ] Tests
+- [ ] Control Algorithm
+  - [ ] Algorithm Development
+  - [ ] Control Loop Implementation
+  - [ ] Feedback Implementation
+  - [ ] Altitude Control
+  - [ ] Position Control
+  - [ ] Tests
+- [ ] User Interface
+  - [ ] Design
+  - [ ] Connection With Payload
+  - [ ] Interface implementation
+  - [ ] Tests
+- [ ] Main Loop
+  - [ ] System Initialization
+  - [ ] Determine Update Frequency
+  - [ ] Update Location and Direction
+  - [ ] Adjust Altitude
+  - [ ] Monitor Wind Conditions
+  - [ ] Adjust Position
+  - [ ] Minimize Power Use
+  - [ ] Tests
