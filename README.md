@@ -23,6 +23,12 @@ Algorithms take into account current pressure and temperature conditions when
 venting helium or dropping ballast to estimate altitude changes. This will
 allow for inexpensive controlled balloon flights for a variety of payloads.
 
+## Libraries
+* Pressure Sensor (https://github.com/sparkfun/SparkFun_MS5803-14BA_Breakout_Arduino_Library)
+* GPS (https://github.com/sparkfun/SparkFun_I2C_GPS_Arduino_Library)
+* TinyGPS++ (http://arduiniana.org/libraries/tinygpsplus/)
+* IMU (https://github.com/sparkfun/SparkFun_MPU-9250-DMP_Arduino_Library)
+
 ## TODO
 - [ ] Sensor Code
   - [ ] Pressure Sensor
