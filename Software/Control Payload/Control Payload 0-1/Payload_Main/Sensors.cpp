@@ -80,6 +80,7 @@ float read_PIT_02(void)
 MPU9250_DMP imu;
 void setup_IMU_01(void)
 {
+  /*
   Serial2.begin(115200); //set baud rate
 
   // Check communication with IMU
@@ -98,10 +99,12 @@ void setup_IMU_01(void)
   //enable XYZ magnetometer for absolute orientation determination
   imu.setSensors(INV_XYZ_COMPASS);
   imu.setCompassSampleRate(50);//check sampling rate
+  */
 }//end setup_IMU_01
 
 IMU_OUTPUT read_IMU_01(void)
 {
+  /*
   IMU_OUTPUT updateValues;
   if ( imu.fifoAvailable() > 0 )//if there is new data
   {
@@ -120,6 +123,7 @@ IMU_OUTPUT read_IMU_01(void)
       }
   }
   return updateValues;
+  */
 }
 
 //GPS
@@ -181,6 +185,6 @@ void check_battery(void)
   /* Measurement of the battery health */
   float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
   // TODOC: This equation is not obvious at first glance, provide some
-  // explanation about what is doing. 
+  // explanation about what is doing.
   Battery_Percentage = 100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min);
 }
