@@ -1,4 +1,5 @@
 # High Ball  
+The MITLL High Ball team’s directive is to design, launch, and control a high altitude balloon (HAB). A control system will use varying wind currents at different altitudes to adjust the balloon’s position. The High Ball team is requesting $1000 for development and testing of a viable HAB control system.
 
 ## Team Makeup
 ### Group Members  
