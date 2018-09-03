@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.1.2">
+<eagle version="9.1.3">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -6077,7 +6077,7 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <sheet>
 <plain>
 <text x="149.86" y="25.4" size="5.08" layer="94">CONTROLLER AND I/O</text>
-<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">C</text>
 </plain>
 <instances>
 <instance part="C-1" gate="G$1" x="177.8" y="116.84"/>
@@ -6328,8 +6328,8 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <text x="185.42" y="180.34" size="2.54" layer="94">Motors / Servos</text>
 <text x="205.74" y="170.18" size="2.54" layer="94">Gas Valve (M-02)</text>
 <text x="165.1" y="170.18" size="2.54" layer="94">Ballast (M-01)</text>
-<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
 <text x="152.4" y="25.4" size="5.08" layer="94">POWER</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">C</text>
 </plain>
 <instances>
 <instance part="VR-01" gate="G$1" x="38.1" y="160.02"/>
@@ -6421,12 +6421,35 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <pinref part="GND11" gate="1" pin="GND"/>
 <pinref part="Q-02" gate="NMOS" pin="S"/>
 </segment>
+<segment>
+<wire x1="172.72" y1="157.48" x2="172.72" y2="160.02" width="0.1524" layer="91"/>
+<pinref part="GND12" gate="1" pin="GND"/>
+<pinref part="M-01" gate="J$1" pin="1"/>
+<wire x1="175.26" y1="157.48" x2="172.72" y2="157.48" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<wire x1="213.36" y1="157.48" x2="213.36" y2="160.02" width="0.1524" layer="91"/>
+<pinref part="GND13" gate="1" pin="GND"/>
+<pinref part="M-02" gate="J$1" pin="1"/>
+<wire x1="215.9" y1="157.48" x2="213.36" y2="157.48" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="VCC_1" class="0">
 <segment>
 <pinref part="VR-01" gate="G$1" pin="OUT+"/>
 <wire x1="58.42" y1="167.64" x2="63.5" y2="167.64" width="0.1524" layer="91"/>
 <pinref part="SUPPLY1" gate="G$2" pin="VCC_1"/>
+</segment>
+<segment>
+<pinref part="M-01" gate="J$1" pin="2"/>
+<wire x1="175.26" y1="154.94" x2="170.18" y2="154.94" width="0.1524" layer="91"/>
+<pinref part="SUPPLY8" gate="G$2" pin="VCC_1"/>
+</segment>
+<segment>
+<pinref part="M-02" gate="J$1" pin="2"/>
+<wire x1="215.9" y1="154.94" x2="213.36" y2="154.94" width="0.1524" layer="91"/>
+<wire x1="213.36" y1="154.94" x2="210.82" y2="154.94" width="0.1524" layer="91"/>
+<pinref part="SUPPLY9" gate="G$2" pin="VCC_1"/>
 </segment>
 </net>
 <net name="VCC_2" class="0">
@@ -6466,21 +6489,6 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <pinref part="Q-02" gate="NMOS" pin="G"/>
 </segment>
 </net>
-<net name="N$3" class="0">
-<segment>
-<pinref part="M-01" gate="J$1" pin="1"/>
-<wire x1="175.26" y1="157.48" x2="172.72" y2="157.48" width="0.1524" layer="91"/>
-<wire x1="172.72" y1="157.48" x2="172.72" y2="160.02" width="0.1524" layer="91"/>
-<pinref part="GND12" gate="1" pin="GND"/>
-</segment>
-</net>
-<net name="N$4" class="0">
-<segment>
-<pinref part="M-01" gate="J$1" pin="2"/>
-<wire x1="175.26" y1="154.94" x2="170.18" y2="154.94" width="0.1524" layer="91"/>
-<pinref part="SUPPLY8" gate="G$2" pin="VCC_1"/>
-</segment>
-</net>
 <net name="M-01" class="0">
 <segment>
 <pinref part="M-01" gate="J$1" pin="3"/>
@@ -6494,22 +6502,6 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <wire x1="215.9" y1="152.4" x2="213.36" y2="152.4" width="0.1524" layer="91"/>
 <wire x1="213.36" y1="152.4" x2="210.82" y2="152.4" width="0.1524" layer="91"/>
 <label x="210.82" y="152.4" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="N$6" class="0">
-<segment>
-<pinref part="M-02" gate="J$1" pin="2"/>
-<wire x1="215.9" y1="154.94" x2="213.36" y2="154.94" width="0.1524" layer="91"/>
-<wire x1="213.36" y1="154.94" x2="210.82" y2="154.94" width="0.1524" layer="91"/>
-<pinref part="SUPPLY9" gate="G$2" pin="VCC_1"/>
-</segment>
-</net>
-<net name="N$7" class="0">
-<segment>
-<pinref part="M-02" gate="J$1" pin="1"/>
-<wire x1="215.9" y1="157.48" x2="213.36" y2="157.48" width="0.1524" layer="91"/>
-<wire x1="213.36" y1="157.48" x2="213.36" y2="160.02" width="0.1524" layer="91"/>
-<pinref part="GND13" gate="1" pin="GND"/>
 </segment>
 </net>
 </nets>
@@ -6537,12 +6529,12 @@ Warning: This is the KIT version of the AXIAL-0.3 package. This package has a sm
 <wire x1="137.16" y1="78.74" x2="99.06" y2="78.74" width="0.1524" layer="94"/>
 <wire x1="99.06" y1="78.74" x2="0" y2="78.74" width="0.1524" layer="94"/>
 <wire x1="137.16" y1="124.46" x2="137.16" y2="78.74" width="0.1524" layer="94"/>
-<text x="238.76" y="5.08" size="5.08" layer="94">B</text>
 <text x="149.86" y="25.4" size="5.08" layer="94">INSTRUMENTATION</text>
 <text x="177.8" y="119.38" size="2.54" layer="94">Iridium / RockBLOCK Module</text>
 <wire x1="137.16" y1="78.74" x2="248.92" y2="78.74" width="0.1524" layer="94"/>
 <wire x1="99.06" y1="78.74" x2="99.06" y2="0" width="0.1524" layer="94"/>
 <text x="33.02" y="73.66" size="2.54" layer="94">Battery Voltage</text>
+<text x="238.76" y="5.08" size="5.08" layer="94">C</text>
 </plain>
 <instances>
 <instance part="TIT-01" gate="G$1" x="96.52" y="154.94"/>
