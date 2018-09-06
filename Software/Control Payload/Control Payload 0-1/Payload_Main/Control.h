@@ -5,6 +5,8 @@
 
 //Functions
 //Main Setup Function
-void setup_Control(void);
+void set_altitude(int lower_bound, int upper_bound);
+int altitude_control(float alt, float velocity, float accel);
+// void setup_Control(void);
 
 #endif /* ifndef CONTROL_H */
