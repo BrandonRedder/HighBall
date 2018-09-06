@@ -2,19 +2,39 @@
 
 // min altitude of 60 kft default
 // max altitude of 80 kft default
-int min_altitude = 60000;
-int max_altitude = 80000;
+float min_altitude = 60000;
+float max_altitude = 80000;
 
-void set_altitude(int lower_bound, int upper_bound) {
+void set_altitude(float lower_bound, float upper_bound) {
   /* Set minimum and maximum altitude bounds for the altitude control system
    *
    * Inputs
    * ------
-   *  lower_bound: int representing the lowest acceptable altitude
-   *  upper_bound: int representing the highest acceptable altitude
+   *  lower_bound: float representing the lowest acceptable altitude
+   *  upper_bound: float representing the highest acceptable altitude
    */
   min_altitude = lower_bound;
   max_altitude = upper_bound;
+}
+
+// velocity and acceleration cutoff values
+// allows adjusting the rate of altitude changes
+float min_velocity = 0;
+float min_accel = 0;
+
+void set_rates(float velocity_cutoff, float accel_cutoff) {
+  /* Set minimum velocity and acceleration values for the balloon to be
+   * considered moving or accelerating.
+   *
+   * Inputs
+   * ------
+   *  velocity_cut: float representing the lowest velocity to be considered
+   *                moving
+   *  accel_cut: float representing the lowest acceleration to be considered
+   *             accelerating
+   */
+  min_velocity = velocity_cutoff;
+  min_accel = accel_cutoff;
 }
 
 #define NO_ACTION 0
@@ -40,16 +60,17 @@ int altitude_control(float alt, float velocity, float accel) {
    */
   // TODO: acount for the case when acceleration is close to 0, but will not
   // currently trigger ballast or helium release
-  if (alt<min_altitude && velocity<=0 && accel<=0) {
+  if (alt<min_altitude && velocity<=min_velocity && accel<=min_accel) {
     /* Below altitude range
-     * Moving downward or not moving
-     * Accelerating downard or not accelerating
+     * Not moving upward fast enough
+     * Not enough upward acceleration
      */
     return DROP_BALLAST;
-  } else if (alt>max_altitude && velocity>=0 && accel>=0) {
+  } else if (alt>max_altitude && velocity>=(0-min_velocity)
+             && accel>=(0-min_accel)) {
     /* Above altitude range
-     * Moving upward or not moving
-     * Accelerating upward or not accelerating
+     * Not moving downward fast enough
+     * Not enough downard acceleration
      */
     return RELEASE_HELIUM;
   } // end if
