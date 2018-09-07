@@ -2,6 +2,11 @@
 #define STATE_MACHINE_H
 
 //Constants
+#define PRE_LAUNCH 10
+#define FLIGHT 20
+#define FALLING 30
+#define RECOVERY 40
+#define TEST 50
 
 //Functions
 //Main Setup Function
