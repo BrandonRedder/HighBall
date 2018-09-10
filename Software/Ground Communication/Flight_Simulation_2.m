@@ -5,6 +5,7 @@ function [] = Flight_Simulation_2()
 tic
 
 load('GridData.mat')
+
 Pressures = [1000:-25:900, 850:-50:100, 70, 50, 30, 20, 10, 7, 5, 3, 2, 1];
 
 alt = 1000; % starting altitude in meters
