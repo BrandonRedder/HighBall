@@ -1,6 +1,6 @@
 #include "Sensors.h"
 
-// Temperature Sensor
+// Temperature Sensor {{{
 // Default Constructor, assumes 100 cal and pin A2
 temperature_sensor::temperature_sensor() {
   set_cal(100.0); // 10 mV <-> 1 Kelvin
@@ -39,6 +39,90 @@ void temperature_sensor::set_pin(int _pin) {
   pin = _pin;
   return;
 }
+
+// }}}
+// Pressure Sensor {{{
+// Default constructor, assumes address=0x76
+pressure_sensor::pressure_sensor() {
+  set_addr(0x76);
+  create_sensor(get_addr());
+}
+
+// Constructor, user provided address
+pressure_sensor::pressure_sensor(int _addr) {
+  set_addr(_addr);
+  create_sensor(get_addr());
+}
+
+// Constructor, user provided sensor
+pressure_sensor::pressure_sensor(MS5803& _sensor) {
+  // This is not the recommended method of interacting with this class.
+  // Provided for edge use cases
+  sensor = _sensor;
+  initialize_sensor();
+}
+
+float pressure_sensor::read_pressure() {
+  /* Reads the current pressure
+   *
+   * Returns
+   * -------
+   *  float: current pressure read by the sensor
+   */
+  return(get_sensor().getPressure(ADC_4096));
+}
+
+void pressure_sensor::create_sensor(int _addr) {
+  /* Create the sensor and initialize it
+   * 
+   * Inputs
+   * ------
+   *  _addr: int representing the address of the sensor
+   */
+  // TODO: test whether this correctly sets the sensor variable
+  MS5803 sensor(_addr);
+  initialize_sensor();
+}
+
+void pressure_sensor::initialize_sensor() {
+  /* Initialize the sensor and print an error if it failed to initialize
+   */
+  get_sensor().reset();
+  int counter = 0
+  while (get_sensor().begin() && counter < 5) {
+    serial.println("Pressure Sensor failed to initialize")
+    get_sensor.reset();
+    delay(500);
+    counter++;
+    if (counter == 5) {
+      serial.println("Pressure Sensor failed 5x, aborting!")
+    }
+  } // end while
+  set_baseline(get_sensor().getPressure(ADC_4096));
+}
+
+// get functions for each member variable
+int pressure_sensor::get_addr() {return(addr);}
+
+MS5803& pressure_sensor::get_sensor() {return(sensor);}
+
+float pressure_sensor::get_baseline() {return(baseline);}
+
+// set functions for each member variable
+void pressure_sensor::set_addr(int _addr) {
+  addr = _addr;
+}
+
+void pressure_sensor::set_baseline(float _baseline) {
+  baseline = _baseline;
+}
+
+// }}}
+
+
+
+
+
 
 //Pressure Sensors
 MS5803 PIT_01(PIT_01_ADR);
@@ -87,56 +171,6 @@ float read_PIT_02(void)
   */
   float pressure = PIT_02.getPressure(ADC_4096);
   return pressure;
-}
-
-//IMU
-MPU9250_DMP imu;
-void setup_IMU_01(void)
-{
-  /*
-  Serial2.begin(115200); //set baud rate
-
-  // Check communication with IMU
-  if (imu.begin() != 0)
-  {
-    while(imu.begin() != 0)
-    {
-      Serial2.println("Unable to connect with IMU.");
-      delay(5000);
-    }//end while display
-  }//end if error in connection
-
-  //enable 6-axis quaternion output
-  imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_GYRO_CAL, 50);//check sampling rate
-
-  //enable XYZ magnetometer for absolute orientation determination
-  imu.setSensors(INV_XYZ_COMPASS);
-  imu.setCompassSampleRate(50);//check sampling rate
-  */
-}//end setup_IMU_01
-
-IMU_OUTPUT read_IMU_01(void)
-{
-  /*
-  IMU_OUTPUT updateValues;
-  if ( imu.fifoAvailable() > 0 )//if there is new data
-  {
-    if (imu.dmpUpdateFifo() == 0)//update data
-    {
-      //update orientation
-      imu.update(UPDATE_COMPASS);
-
-      updateValues.xMag = imu.calcMag(imu.mx);
-      updateValues.yMag = imu.calcMag(imu.my);
-      updateValues.xMag = imu.calcMag(imu.mz);
-      updateValues.q0 = imu.qw;
-      updateValues.q1 = imu.qx;
-      updateValues.q2 = imu.qy;
-      updateValues.q3 = imu.qz;
-      }
-  }
-  return updateValues;
-  */
 }
 
 //GPS

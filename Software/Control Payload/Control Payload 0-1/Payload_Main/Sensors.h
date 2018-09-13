@@ -24,6 +24,29 @@ class temperature_sensor {
     int pin;
 }
 
+// Pressure Sensor
+class pressure_sensor {
+  public:
+    pressure_sensor();
+    pressure_sensor(int);
+    pressure_sensor(MS5803&);
+    float read_pressure();
+
+    void create_sensor(int);
+    void initialize_sensor();
+
+    int get_addr();
+    MS5803& get_sensor();
+    float get_baseline();
+    void set_addr(int);
+    void set_baseline(float);
+
+  private:
+    int addr;
+    MS5803 sensor;
+    float baseline;
+}
+
 //Constants
 // TODOC: These should be explained a bit more
 //Temperature Sensor
