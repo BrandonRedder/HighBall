@@ -1,30 +1,43 @@
 #include "Sensors.h"
 
-//Functions
-//Main Setup Function
-void setup_Sensors(void)
-{
-  /* Initializes 2 Pressure sensors, IMU, GPS, and Checks Battery level */
-  setup_PIT_01();
-  setup_PIT_02();
-  setup_IMU_01();
-  setup_GPS_01();
-  check_battery();
+// Temperature Sensor
+// Default Constructor, assumes 100 cal and pin A2
+temperature_sensor::temperature_sensor() {
+  set_cal(100.0); // 10 mV <-> 1 Kelvin
+  set_pin(A2);
 }
 
-//Temperature Sensor
-//Messure Temperature in Kelvin
-float read_TIT_01(void)
-{
+// Constructor, set cal and pin #
+temperature_sensor::temperature_sensor(float _cal, int _pin) {
+  set_cal(_cal);
+  set_pin(_pin);
+}
+
+float temperature_sensor::read_temp() {
   /* Reads the analog output level and converts to temperature data
-  Returns
-  -------
-  float: Temperature measured by the Temperature Sensor
-  */
-  float voltage = 5 * ((float)analogRead(TIT_01))/1024.0; //0 to 1023 and 0 to 5V
-  // FIXME: Not sure if units agree on this return compared with TIT_01_CAL
-  // FIXME: Also, the 100 should probably be accounted for in the calibration
-  return TIT_01_CAL * voltage * 100; //1K per 10mV
+   *
+   * Returns
+   * -------
+   *  float: Temperature measured by the sensor
+   */
+  float voltage = (5 / 1024) * ((float)analogRead(get_pin()));
+  return(voltage * get_cal());
+}
+
+// get functions for each member variable
+float temperature_sensor::get_cal() {return(calibration);}
+
+int temperature_sensor::get_pin() {return(pin);}
+
+// set functions for each member variable
+void temperature_sensor::set_cal(float _cal) {
+  calibration = _cal;
+  return;
+}
+
+void temperature_sensor::set_pin(int _pin) {
+  pin = _pin;
+  return;
 }
 
 //Pressure Sensors

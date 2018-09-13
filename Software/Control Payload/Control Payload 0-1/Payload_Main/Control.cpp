@@ -89,13 +89,13 @@ int altitude_control::get_action(float alt, float velocity, float accel) {
 } // end altitude_control
 
 // get functions for each member variable
-float altitude_control::get_min_altitude() {return min_altitude;}
+float altitude_control::get_min_altitude() {return(min_altitude);}
 
-float altitude_control::get_max_altitude() {return max_altitude;}
+float altitude_control::get_max_altitude() {return(max_altitude);}
 
-float altitude_control::get_min_velocity() {return min_velocity;}
+float altitude_control::get_min_velocity() {return(min_velocity);}
 
-float altitude_control::get_min_accel() {return min_accel;}
+float altitude_control::get_min_accel() {return(min_accel);}
 
 // set functions for each member variable
 void altitude_control::set_min_altitude(float _min_altitude) {

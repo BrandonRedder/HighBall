@@ -7,6 +7,22 @@
 #include <TinyGPS++.h>
 #include <SparkFunMPU9250-DMP.h>
 
+//Temperature Sensor
+class temperature_sensor {
+  public:
+    temperature_sensor();
+    temperature_sensor(float, int);
+    float read_temp();
+
+    float get_cal();
+    int get_pin();
+    void set_cal(float);
+    void set_pin(int);
+
+  private:
+    float calibration;
+    int pin;
+}
 
 //Constants
 // TODOC: These should be explained a bit more
@@ -35,12 +51,11 @@
 #define Battery_Max 12.6
 #define Battery_Min 8.25
 
-//Functions
 
-//Main Setup Function
-void setup_Sensors(void);
 
-//Temperature Sensor
+
+
+
 float read_TIT_01(void);
 
 //Pressure Sensors
