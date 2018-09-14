@@ -1,7 +1,8 @@
 #include <SparkFunMPU9250-DMP.h>
 #include<math.h>
-float calibration[3];
-
+float zCalibration[3];
+float xCalibration[3];
+float yCalibration[3];
 //IMU
 MPU9250_DMP imu;
 void setup()
@@ -24,22 +25,20 @@ void setup()
   imu.setAccelFSR(2);
   imu.setSampleRate(50);
   imu.setCompassSampleRate(50);//check sampling rate
+  imu.update(UPDATE_ACCEL);
 
   //set calibration
-  imu.update(UPDATE_ACCEL);
-  /*calibration[0] = imu.calcAccel(imu.ax);
-  calibration[1] = imu.calcAccel(imu.ay);
-  calibration[2] = imu.calcAccel(imu.az);
-  float mag = sqrt(calibration[0] * calibration[0] +
-    calibration[1] * calibration[1] +
-    calibration[2] * calibration[2]);
-  calibration[0] = calibration[0]/mag;
-  calibration[1] = calibration[1]/mag;
-  calibration[2] = calibration[2]/mag;
-  */
-  calibration[0]=0;
-  calibration[1]=0;
-  calibration[2]=1;
+  zCalibration[0]=0; //x
+  zCalibration[1]=0; //y
+  zCalibration[2]=1; //z
+
+  xCalibration[0] = 1; //x
+  xCalibration[1] = 0; //y
+  xCalibration[2] = 0; //z
+
+  yCalibration[0] = 0; //x
+  yCalibration[1] = 1; //y
+  yCalibration[2] = 0; //z
 }//end setup_IMU_01
 
 void loop()
@@ -53,15 +52,6 @@ void loop()
       imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
       imu.computeEulerAngles(false); //output in radians
       printTest();
-            /*
-      updateValues.xMag = imu.calcMag(imu.mx);
-      updateValues.yMag = imu.calcMag(imu.my);
-      updateValues.xMag = imu.calcMag(imu.mz);
-      updateValues.q0 = imu.qw;
-      updateValues.q1 = imu.qx;
-      updateValues.q2 = imu.qy;
-      updateValues.q3 = imu.qz;
-      */
       }
   }
   return;// updateValues;
@@ -92,39 +82,65 @@ static void calculateAngles(float qw, float qx, float qy, float qz, double& roll
 }
 
 void printTest(){
-  //float theta = imu.roll;
-  //float psi = imu.pitch;
-  //float phi = imu.yaw;
-  float orientation[3];
-  double theta;
-  double psi;
-  double phi;
+
+  float zOrientation[3];
+  float xOrientation[3];
+  float yOrientation[3];
+
+  double theta; //roll
+  double psi; //pitch
+  double phi; //yaw
+
   calculateAngles(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), theta, psi, phi);
 
   float qi = imu.calcQuat(imu.qx);
   float qj = imu.calcQuat(imu.qy);
   float qk = imu.calcQuat(imu.qz);
   float qr = imu.calcQuat(imu.qw);
+
   //calculate rotation from calibration using pitch - roll - yaw roration matrix
-  orientation[0] = calibration[0] * (cos(theta) * cos(phi)) + calibration[1] * (cos(theta) * sin(phi)) - calibration[2] * sin(theta);
-  orientation[1] = calibration[0] * (sin(psi) * sin(theta) * cos(phi) - cos(psi) * sin(phi)) + calibration[1] * (sin(psi) * sin(theta) * sin(phi) + cos(psi) * cos(phi)) + calibration[2] * (cos(theta) * sin(psi));
-  orientation[2] = calibration[0] * 	(cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi)) + calibration[1] * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + calibration[2] * cos(theta) * cos(psi);
+  zOrientation[0] = zCalibration[0] * (cos(theta) * cos(phi)) + zCalibration[1] * (cos(theta) * sin(phi)) - zCalibration[2] * sin(theta);
+  zOrientation[1] = zCalibration[0] * (sin(psi) * sin(theta) * cos(phi) - cos(psi) * sin(phi)) + zCalibration[1] * (sin(psi) * sin(theta) * sin(phi) + cos(psi) * cos(phi)) + zCalibration[2] * (cos(theta) * sin(psi));
+  zOrientation[2] = zCalibration[0] *	(cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi)) + zCalibration[1] * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + zCalibration[2] * cos(theta) * cos(psi);
 
-  //orientation[0] = calibration[0] * (1 - 2 * (qj * qj + qk * qk)) + calibration[1] * 2 * ( qi * qj - qk * qr) + calibration[2] * 2 * (qi * qk + qj * qr);
-  //orientation[1] = calibration[0] * 2 * (qi * qj + qk * qr) + calibration[1] * (1 - 2 * (qi * qi + qk * qk)) + calibration[2] * 2 * (qi * qk - qi * qr);
-  //orientation[2] = calibration[0] * 2 * (qi * qk - qj * qr) + calibration[1] * 2 * (qj * qk + qi * qr) + calibration[2] * (1 - 2 * (qi * qi + qj * qj));
+  xOrientation[0] = xCalibration[0] * (cos(theta) * cos(phi)) + xCalibration[1] * (cos(theta) * sin(phi)) - xCalibration[2] * sin(theta);
+  xOrientation[1] = xCalibration[0] * (sin(psi) * sin(theta) * cos(phi) - cos(psi) * sin(phi)) + xCalibration[1] * (sin(psi) * sin(theta) * sin(phi) + cos(psi) * cos(phi)) + xCalibration[2] * (cos(theta) * sin(psi));
+  xOrientation[2] = xCalibration[0] *	(cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi)) + xCalibration[1] * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + xCalibration[2] * cos(theta) * cos(psi);
 
-  //calculate dot product to project vertical velocity and acceleration onto orientation
-  float accelerationVertical = -1*(orientation[0] * -1*imu.calcAccel(imu.ay) + orientation[1] * -1* imu.calcAccel(imu.ax) + orientation[2] * imu.calcAccel(imu.az));
-  float velocityVertical = orientation[0] * imu.calcGyro(imu.gx) + orientation[1] * imu.calcGyro(imu.gy) + orientation[2] * imu.calcGyro(imu.gz);
+  yOrientation[0] = yCalibration[0] * (cos(theta) * cos(phi)) + yCalibration[1] * (cos(theta) * sin(phi)) - yCalibration[2] * sin(theta);
+  yOrientation[1] = yCalibration[0] * (sin(psi) * sin(theta) * cos(phi) - cos(psi) * sin(phi)) + yCalibration[1] * (sin(psi) * sin(theta) * sin(phi) + cos(psi) * cos(phi)) + yCalibration[2] * (cos(theta) * sin(psi));
+  yOrientation[2] = yCalibration[0] *	(cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi)) + yCalibration[1] * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + yCalibration[2] * cos(theta) * cos(psi);
+
+  //calculate dot product to project acceleration onto orientation
+  float zAcceleration = -1*(zOrientation[0] * -1*imu.calcAccel(imu.ay) + zOrientation[1] * -1* imu.calcAccel(imu.ax) + zOrientation[2] * imu.calcAccel(imu.az));
+  float xAcceleration = -1*(xOrientation[0] * -1*imu.calcAccel(imu.ay) + xOrientation[1] * -1* imu.calcAccel(imu.ax) + xOrientation[2] * imu.calcAccel(imu.az));
+  float yAcceleration = -1*(yOrientation[0] * -1*imu.calcAccel(imu.ay) + yOrientation[1] * -1* imu.calcAccel(imu.ax) + yOrientation[2] * imu.calcAccel(imu.az));
+
+  float direction;
+
+  if(xAcceleration < 0){
+    direction = atan(yAcceleration/xAcceleration)*180/M_PI + 180;
+  }
+  else if((xAcceleration > 0) && (yAcceleration >= 0)){
+    direction = atan(yAcceleration/xAcceleration)*180/M_PI;
+  }
+  else if((xAcceleration > 0) && (yAcceleration <= 0)){
+    direction = atan(yAcceleration/xAcceleration)*180/M_PI + 360;
+  }
+  else if(xAcceleration == 0){
+    direction = yAcceleration > 0 ? M_PI/2 : 3*M_PI/2;
+  }
+
+  float horizontalAcceleration = sqrt(xAcceleration * xAcceleration + yAcceleration * yAcceleration);
+
   SerialUSB.println("Q:" + String(imu.calcQuat(imu.qw),4) + ", " + String(imu.calcQuat(imu.qx),4) + ", " + String(imu.calcQuat(imu.qy),4) + ", " + String(imu.calcQuat(imu.qz), 4));
-  SerialUSB.println("Mag:" + String(imu.calcMag(imu.mx)) + ", " + String(imu.calcMag(imu.my)) + ", " + String(imu.calcMag(imu.mz)));
-  SerialUSB.println("Gyro:" + String(imu.calcGyro(imu.gx)) + ", " + String(imu.calcGyro(imu.gy)) + ", " + String(imu.calcGyro(imu.gz)));
-  SerialUSB.println("Accel:" + String(imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.ay)) + ", " + String(imu.calcAccel(imu.az)));
-  SerialUSB.println("Vertical Acceleration: " + String(accelerationVertical));
-  SerialUSB.println("Vertical Velocity: " + String(velocityVertical));
-  SerialUSB.println("Orientation  " + String(orientation[0]) + " , " + String(orientation[1]) + " , " + String(orientation[2]));
-  SerialUSB.println("Calibration  " + String(calibration[0]) + " , " + String(calibration[1]) + " , " + String(calibration[2]));
+  SerialUSB.println("Accel:" + String(-1*imu.calcAccel(imu.ay)) + ", " + String(-1*imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.az)));
+  SerialUSB.println("Vertical Acceleration: " + String(zAcceleration));
+  SerialUSB.println("OrientationZ  " + String(zOrientation[0]) + " , " + String(zOrientation[1]) + " , " + String(zOrientation[2]));
+  SerialUSB.println("OrientationX  " + String(xOrientation[0]) + " , " + String(xOrientation[1]) + " , " + String(xOrientation[2]));
+  SerialUSB.println("OrientationY  " + String(yOrientation[0]) + " , " + String(yOrientation[1]) + " , " + String(yOrientation[2]));
+  SerialUSB.println("Horizontal Acceleration: " + String(horizontalAcceleration) + " Angle: " + String(direction,4));
+  SerialUSB.println("Y acceleration: " + String(yAcceleration) + " X Acceleration: " + String(xAcceleration));
   SerialUSB.println("Pitch: " + String(psi) + " Roll: " + String(theta) + " Yaw: " + String(phi));
   SerialUSB.println();
 }
