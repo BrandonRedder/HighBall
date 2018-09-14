@@ -1,10 +1,12 @@
 #include "Sensors.h"
 
 // Temperature Sensor {{{
+#define TEMPERATURE_DEFAULT_CAL 100.0
+#define TEMPERATURE_DEFAULT_PIN A2
 // Default Constructor, assumes 100 cal and pin A2
 temperature_sensor::temperature_sensor() {
-  set_cal(100.0); // 10 mV <-> 1 Kelvin
-  set_pin(A2);
+  set_cal(TEMPERATURE_DEFAULT_CAL); // 10 mV <-> 1 Kelvin
+  set_pin(TEMPERATURE_DEFAULT_PIN);
 }
 
 // Constructor, set cal and pin #
@@ -42,9 +44,10 @@ void temperature_sensor::set_pin(int _pin) {
 
 // }}}
 // Pressure Sensor {{{
+#define PRESSURE_DEFAULT_ADDR 0x76
 // Default constructor, assumes address=0x76
 pressure_sensor::pressure_sensor() {
-  set_addr(0x76);
+  set_addr(PRESSURE_DEFAULT_ADDR);
   create_sensor(get_addr());
 }
 
@@ -118,120 +121,146 @@ void pressure_sensor::set_baseline(float _baseline) {
 }
 
 // }}}
-
-
-
-
-
-
-//Pressure Sensors
-MS5803 PIT_01(PIT_01_ADR);
-MS5803 PIT_02(PIT_02_ADR);
-double PIT_01_Pressure_Baseline; // Consider Switching to float
-double PIT_02_Pressure_Baseline;
-// FIXME: These will not be accessible outside this file
-//        They should be defined the Sensors.h file
-
-void setup_PIT_01(void)
-{
-  /* Perform the setup routine for pressure sensor 1 */
-  PIT_01.reset();
-  PIT_01.begin();
-  // FIXME: There should be a way to check that the sensor started correctly
-  PIT_01_Pressure_Baseline = PIT_01.getPressure(ADC_4096);
-  // FIXME: Baselines are never used, can't be used outside this file as is
+// GPS {{{
+#define GPS_DEFAULT_ADDR 0x10
+#define GPS_DEFAULT_WAKE 22
+#define GPS_DEFAULT_RESETN 23
+#define GPS_DEFAULT_INT 24
+// Default Constructor, assumes default addr is 0x10
+GPS::GPS() {
+  set_addr(GPS_DEFAULT_ADDR);
+  set_wake(GPS_DEFAULT_WAKE);
+  set_reset(GPS_DEFAULT_RESETN);
+  set_int(GPS_DEFAULT_INT);
+  create_GPS(get_addr());
 }
 
-void setup_PIT_02(void)
-{
-  /* Perform the setup routine for pressure sensor 2 */
-  PIT_02.reset();
-  PIT_02.begin();
-  // FIXME: There should be a way to check that the sensor started correctly
-  PIT_02_Pressure_Baseline = PIT_02.getPressure(ADC_4096);
+// Constructor, provide address
+GPS::GPS(int _addr, int _wake, int _reset, int _int) {
+  set_addr(_addr);
+  set_wake(_wake);
+  set_reset(_reset);
+  set_int(_int);
+  create_GPS(get_addr());
 }
 
-float read_PIT_01(void)
-{
-  /* Read the current pressure from Presure sensor 1
-  Returns
-  -------
-  float: current pressure measured from Presure sensor 1
-  */
-  float pressure = PIT_01.getPressure(ADC_4096);
-  return pressure;
-}
-
-float read_PIT_02(void)
-{
-  /* Read the current pressure from Presure sensor 2
-  Returns
-  -------
-  float: current pressure measured from Presure sensor 2
-  */
-  float pressure = PIT_02.getPressure(ADC_4096);
-  return pressure;
-}
-
-//GPS
-I2CGPS myI2CGPS;
-TinyGPSPlus GPS_Parser;
-double GPS_Altitude;
-double GPS_Lat;
-double GPS_Long;
-int GPS_Sat; //Number of Satellites
-// FIXME: These will not be accessible outside this file
-//        They should be defined the Sensors.h file
-//        This is the same as for Pressure
-// FIXME: At a minimum, these values should be grouped into a struct to help
-//        readability
-
-void setup_GPS_01(void)
-{
-  /* Initialize the GPS Module */
-  #define GPS_01_ADR 0x10 // FIXME: Duplicated in .h file
-  pinMode(GPS_01_ResetN, OUTPUT);
-  pinMode(GPS_01_Wake, OUTPUT);
-  pinMode(GPS_01_INT, INPUT);
-
-  digitalWrite(GPS_01_ResetN, HIGH);
-  digitalWrite(GPS_01_Wake, HIGH);
-
-  myI2CGPS.begin()
-
-}
-
-void read_GPS_01(void)
-{
-  /* Read current position using GPS Module */
-  digitalWrite(GPS_01_Wake, HIGH); //Wake-up GPS
+GPS_Data GPS::read_GPS() {
+  /* Update current position and then return that position
+   *
+   * Returns
+   * -------
+   *  GPS_Data: struct containing altitude, longitude, and latitude
+   */
+  digitalWrite(get_wake(), HIGH); // Wake GPS
   delay(50);
 
-  while(!digitalRead(GPS_01_INT)); //Wait for GPS to be ready
+  while (!digitalRead(get_int())); // Wait for GPS to be ready
 
-  while (myI2CGPS.available()) //available() returns the number of new bytes available from the GPS module
-  {
-    GPS_Parser.encode(myI2CGPS.read()); //Feed the GPS parser
+  while (myGPS.available()) { // available() returns # of new bytes that can be read
+    GPS_Parser.encode(myGPS.read()); // Give data to parser
   }
 
-  // FIXME: Return a struct instead of altering global variables
-  GPS_Altitude = GPS_Parser.altitude.feet();
-  GPS_Lat = GPS_Parser.location.lat();
-  GPS_Long = GPS_Parser.location.lng();
-  GPS_Sat = GPS_Parser.satellites.value();
+  set_alt(GPS_Parser.altitude.feet());
+  set_lat(GPS_Parser.location.lat());
+  set_long(GPS_Parser.location.lng());
+  set_sats(GPS_Parser.satellites.value());
 
-  digitalWrite(GPS_01_Wake, LOW); //Put GPS into Low Power Mode
+  digitalWrite(get_wake(), LOW); // return to low power mode
+
+  return(get_data());
 }
 
-//Battery Voltage
-float Battery_Percentage;
-// FIXME: This will not be accessible outside this file
-//        It should be defined the Sensors.h file
-void check_battery(void)
+void GPS::create_GPS() {
+  /* Create an initialize the GPS objects
+   */
+  I2CGPS myGPS;
+  TinyGPSPlus GPS_Parser;
+  initialize_GPS();
+}
+
+void GPS::initialize_GPS() {
+  pinMode(get_reset(), OUTPUT);
+  pinMode(get_wake(), OUTPUT);
+  pinMode(get_int(), INPUT);
+
+  digitalWrite(get_reset(), HIGH);
+  digitalWrite(get_wake(), HIGH);
+
+  int counter = 0;
+  while (myGPS.begin() && counter < 5) {
+    digitalWrite(get_reset(), HIGH);
+    serial.println("GPS failed to initialize")
+    delay(50);
+    counter++; 
+    if (counter == 5) {
+      serial.println("GPS failed 5x, aborting!")
+    } // end if
+  } // end while
+}
+
+// get functions
+int GPS::get_addr() {return(addr);}
+
+int GPS::get_wake() {return(wake);}
+
+int GPS::get_reset() {return(reset);}
+
+int GPS::get_int() {return(interact);}
+
+GPS_Data GPS::get_data() {return(data);}
+
+float GPS::get_alt() {return(data.altitude);}
+
+float GPS::get_lat() {return(data.latitude);}
+
+float GPS::get_long() {return(data.longitude);}
+
+int GPS::get_sats() {return(data.satellites);}
+
+// set functions
+void GPS::set_addr(int _addr) {
+  addr = _addr;
+}
+
+void GPS::set_wake(int _wake) {
+  wake = _wake;
+}
+
+void GPS::set_reset(int _reset) {
+  reset = _reset;
+}
+
+void GPS::set_int(int _int) {
+  interact = _int;
+}
+
+void GPS::set_data(GPS_Data _data) {
+  data = _data;
+}
+
+void GPS::set_alt(float _alt) {
+  data.altitude = _alt;
+}
+
+void GPS::set_lat(float _lat) {
+  data.latitude = _lat;
+}
+
+void GPS::set_long(float _long) {
+  data.longitude = _long;
+}
+
+void GPS::set_sats(int _sats) {
+  data.satellites = _sats;
+}
+
+// }}}
+// Battery Voltage {{{
+float check_battery(void)
 {
   /* Measurement of the battery health */
   float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
   // TODOC: This equation is not obvious at first glance, provide some
   // explanation about what is doing.
-  Battery_Percentage = 100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min);
+  return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min));
 }

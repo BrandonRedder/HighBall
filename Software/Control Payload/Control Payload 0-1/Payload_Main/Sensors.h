@@ -22,7 +22,7 @@ class temperature_sensor {
   private:
     float calibration;
     int pin;
-}
+};
 
 // Pressure Sensor
 class pressure_sensor {
@@ -45,7 +45,56 @@ class pressure_sensor {
     int addr;
     MS5803 sensor;
     float baseline;
-}
+};
+
+// GPS
+struct GPS_Data {
+  float altitude;
+  float latitude;
+  float longitude;
+  int satellites;
+};
+
+class GPS {
+  public:
+    GPS();
+    GPS(int, int, int, int);
+    GPS_Data read_GPS();
+
+    void create_GPS();
+    void initialize_GPS();
+
+    int get_addr();
+    int get_wake();
+    int get_reset();
+    int get_int();
+    GPS_Data get_data();
+    float get_alt();
+    float get_lat();
+    float get_long();
+    int get_sats();
+    void set_addr(int);
+    void set_wake(int);
+    void set_reset(int);
+    void set_int(int);
+    void set_data(GPS_Data);
+    void set_alt(float);
+    void set_lat(float);
+    void set_long(float);
+    void set_sats(int);
+
+  private:
+    int addr;
+    int wake;
+    int reset;
+    int interact;
+    I2CGPS myGPS;
+    TinyGPSPlus GPS_Parser;
+    GPS_Data data;
+};
+
+// Battery
+float check_battery();
 
 //Constants
 // TODOC: These should be explained a bit more
@@ -73,39 +122,5 @@ class pressure_sensor {
 #define Battery_Divider 1.15385
 #define Battery_Max 12.6
 #define Battery_Min 8.25
-
-
-
-
-
-
-float read_TIT_01(void);
-
-//Pressure Sensors
-void setup_PIT_01(void);
-void setup_PIT_02(void);
-float read_PIT_01(void);
-float read_PIT_02(void);
-
-//IMU
-struct IMU_OUTPUT{
-  /* Contains x,y,z magnetometer data, and quaternian acceleration data */
-  float xMag = 0;
-  float yMag = 0;
-  float zMag = 0;
-  float q0 = 0;
-  float q1 = 0;
-  float q2 = 0;
-  float q3 = 0;
-};
-void setup_IMU_01(void);
-IMU_OUTPUT read_IMU_01(void);
-
-//GPS
-void setup_GPS_01(void);
-void read_GPS_01(void);
-
-//Battery Voltage
-void check_battery(void);
 
 #endif /* ifndef SENSORS_H */
