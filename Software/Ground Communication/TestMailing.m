@@ -1,4 +1,4 @@
-function [] = TestMailing()
+function [] = TestMailing(Data)
 % Iridium messages can be sent and recieved through emails
 % This uses matlab code to create *.sbd binary data files and sends them
 % using the Iridium formatting from a team email. The files are kept in the
@@ -17,17 +17,14 @@ function [] = TestMailing()
 % begin checking for incoming messages until one is recieved. The recieved
 % data can then be decoded and input to the simulation.
 
-
-% Create Random Binary Data
-A = rand(80,1);
-B = ones(80,1);
-B(A<.5) = 0;
-temp = datetime('now','TimeZone','local');
-date = datestr(temp, 'yy-MM-dd_HH-mm-ss');
+% Create Message
+A = EncodeMessage(Data);
 
 % Write data to binary .sbd filed
+temp = datetime('now','TimeZone','local');
+date = datestr(temp, 'yy-MM-dd_HH-mm-ss');
 FID = fopen([date,'data.sbd'], 'w+');
-fwrite(FID, B);
+fwrite(FID, A);
 fclose('all');
 
 % Send email with sbd Attachment

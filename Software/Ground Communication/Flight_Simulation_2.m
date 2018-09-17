@@ -1,19 +1,23 @@
-function [] = Flight_Simulation_2()
+function [] = Flight_Simulation_2(varargin)
 % Flight Time Simulator
 % Balloon modeled as perfect sphere for simplicity
 
-tic
-
 load('GridData.mat')
 
-Pressures = [1000:-25:900, 850:-50:100, 70, 50, 30, 20, 10, 7, 5, 3, 2, 1];
-
-alt = 1000; % starting altitude in meters
-lat0 = 33.753746; % starting latitude
-long0 = -84.386330; %starting longitude
 d0 = datetime('2018-07-09 00:00:00', 'InputFormat', 'yyyy-MM-dd HH:mm:ss') - init_time;
-t0 = hours(d0); %initial time in hours
 
+if nargin > 0
+    Data = varargin{1};
+    alt = Data.alt;
+    lat0 = Data.lat;
+    long0 = Data.long;
+    t0 = Data.time;
+else
+    alt = 1000; % starting altitude in meters
+    lat0 = 33.753746; % starting latitude
+    long0 = -84.386330; %starting longitude
+    t0 = hours(d0); %initial time in hours
+end
 x1 = init_lat:fin_lat;
 x2 = init_long:fin_long;
 x3 = Pressures;
@@ -26,10 +30,6 @@ mask4 = 1:16;
 
 alts = double(interpn(x1, x2, x3, x4, hgt, lat0, long0, Pressures, t0, 'makima'));
 alts = reshape(alts, 1, []);
-
-% plot(Pressures,alts,'*');
-% xlabel('pressure')
-% ylabel('altitude')
 
 % linear interpolation of pressures to match altitude
 P0 = double(interpn(alts, Pressures, alt, 'makima'));
@@ -103,12 +103,6 @@ while Bal > 0 && count < 2000 && P0 < 950
     
     % itterative check for pressure matching the new altitude 
     % interpolate data grid to get table of altitudes at pressure levels just below previous pressure
-    
-%     prs = (1.2*P0):(-P0/100):(P0*.8);
-%     alts = double(interpn(x1, x2, x3, x4, hgt, lat0, long0, prs, t+t0));
-%     alts = reshape(alts, 1, []);
-%     alts = alts(alts>0);
-%     prs = prs(alts>0);
 
     temp1 = mask1(x1>=lat0);
     s_lat = (temp1(1)-2):(temp1(1)+2);
