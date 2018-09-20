@@ -262,5 +262,6 @@ float check_battery(void)
   float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
   // TODOC: This equation is not obvious at first glance, provide some
   // explanation about what is doing.
-  return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) / (Battery_Max - Battery_Min));
+  return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) / 
+         (Battery_Max - Battery_Min));
 }
