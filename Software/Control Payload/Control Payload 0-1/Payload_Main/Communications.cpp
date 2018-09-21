@@ -148,13 +148,11 @@ void check_status (void) {
 
 void encode_all (void) {
   // Temperature Data
-  float temperature =  read_TIT_01(); 
-  int new_temperature = convert_float(temperature, TEMP_MIN, TEMP_STEP);
+  float temperature0 =  temperature_sensor::read_temp(); 
+  int new_temperature = convert_float(temperature0, TEMP_MIN, TEMP_STEP);
   encode_data (new_temperature, TEMP_OFFSET, TEMP_BITS);
   // Pressure Data
-  float pressure1 = read_PIT_01();
-  float pressure2 = read_PIT_02();
-  float pressure = (pressure1+pressure2)/2;
+  float pressure = pressure_sensor::read_pressure();
   int new_pressure = convert_float(pressure, PRS_MIN, PRS_STEP);
   encode_data (new_pressure, PRS_OFFSET, PRS_BITS);
   // IMU Data
@@ -166,14 +164,18 @@ void encode_all (void) {
   int new_acc_phi = convert_float(acc_phi, ACC_PHI_MIN, ACC_PHI_STEP);
   encode_data (new_acc_phi, ACC_PHI_OFFSET, ACC_PHI_BITS);
   // GPS Data
-  int new_altitude = convert_float(GSP_Altitude, ALT_MIN, ALT_STEP);
+  float altitude0 = GPS::get_alt(); 
+  int new_altitude = convert_float(altitude0, ALT_MIN, ALT_STEP);
   encode_data (new_altitude, ALT_OFFSET, ALT_BITS);
-  int new_latitude = convert_float(GPS_Lat, LAT_MIN, LAT_STEP);
+  float latitude0 = GPS::get_lat(); 
+  int new_latitude = convert_float(latitude0, LAT_MIN, LAT_STEP);
   encode_data (new_latitude, LAT_OFFSET, LAT_BITS);
-  int new_longitude = convert_float(GPS_Long, LONGITUDE_MIN, LONG_STEP);
+  float longitude0 = GPS::get_long(); 
+  int new_longitude = convert_float(longitude0, LONGITUDE_MIN, LONG_STEP);
   encode_data (new_longitude, LONG_OFFSET, LONG_BITS);
   // Battery Data
-  int new_battery_percentage = convert_float(Battery_Percentage, BATT_MIN, BATT_STEP);
+  float BatteryPercentage = check_battery();
+  int new_battery_percentage = convert_float(BatteryPercentage, BATT_MIN, BATT_STEP);
   encode_data (new_battery_percentage, BATT_OFFSET, BATT_BITS);
   // Velovity Data
     // Add here

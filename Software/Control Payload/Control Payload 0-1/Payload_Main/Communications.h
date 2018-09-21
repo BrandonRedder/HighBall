@@ -11,7 +11,7 @@
 #define WiredSerial Serial
 #define SLEEP_PIN 25
 #define RING_PIN 3
-#define DIAGNOSTICS false
+#define DIAGNOSTICS true
 
 // Alarm Conditions
 #define MAX_ACCEL 12
