@@ -24,7 +24,7 @@ A = EncodeMessage(Data);
 temp = datetime('now','TimeZone','local');
 date = datestr(temp, 'yy-MM-dd_HH-mm-ss');
 FID = fopen([date,'data.sbd'], 'w+');
-fwrite(FID, A);
+fwrite(FID, A, 'ubit1');
 fclose('all');
 
 % Send email with sbd Attachment

@@ -1,3 +1,4 @@
+
 #include <Wire.h>
 #include <SparkFun_MS5803_I2C.h>
 #include <IridiumSBD.h>
@@ -6,7 +7,7 @@
 
 #define IridiumSerial Serial3
 #define SLEEP_PIN 4
-#define DIAGNOSTICS false // Change this to see diagnostics
+#define DIAGNOSTICS true // Change this to see diagnostics
 
 //I2CGPS myI2CGPS; //Hook object to the library
 // Declare the IridiumSBD object (note SLEEP pin)
@@ -40,7 +41,7 @@ void setup() {
   //}
   //Serial.println("GPS module found!");
 
-  //Serial.begin(9600);
+
   //Retrieve calibration constants for conversion math.
   sensor.reset();
   sensor.begin();
