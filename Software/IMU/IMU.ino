@@ -43,6 +43,16 @@ void setup()
 
 void loop()
 {
+  char comm;
+  if(Serial.available() > 0){
+    comm = Serial.read();
+    if(comm == '1'){
+      Serial.print('1');
+    }
+    else{
+      Serial.print('0');
+    }
+  }
   //IMU_OUTPUT updateValues;
   if ( imu.fifoAvailable() > 0 )//if there is new data
   {
@@ -51,7 +61,7 @@ void loop()
       //update orientation
       imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
       imu.computeEulerAngles(false); //output in radians
-      printTest();
+      calculateValues();
       }
   }
   return;// updateValues;
@@ -81,7 +91,7 @@ static void calculateAngles(float qw, float qx, float qy, float qz, double& roll
 
 }
 
-void printTest(){
+void calculateValues(){
 
   float zOrientation[3];
   float xOrientation[3];
@@ -132,7 +142,14 @@ void printTest(){
   }
 
   float horizontalAcceleration = sqrt(xAcceleration * xAcceleration + yAcceleration * yAcceleration);
+  exportValues(zAcceleration, horizontalAcceleration, direction);
+}
 
+void exportValues(float Vaccel, float Haccel, float dir){
+  Serial.print('<' + String(Vaccel) + ',' + String(Haccel) + ',' + String(dir) + '>');
+}
+
+void printTest(){
   SerialUSB.println("Q:" + String(imu.calcQuat(imu.qw),4) + ", " + String(imu.calcQuat(imu.qx),4) + ", " + String(imu.calcQuat(imu.qy),4) + ", " + String(imu.calcQuat(imu.qz), 4));
   SerialUSB.println("Accel:" + String(-1*imu.calcAccel(imu.ay)) + ", " + String(-1*imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.az)));
   SerialUSB.println("Vertical Acceleration: " + String(zAcceleration));
