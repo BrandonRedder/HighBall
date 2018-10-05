@@ -75,6 +75,14 @@ float pressure_sensor::read_pressure() {
   return(get_sensor().getPressure(ADC_4096));
 }
 
+float pressure_sensor::find_altitude() {
+  float P = read_pressure();
+  // altitude calculation from sparkfun example
+  float alt_meters = 44330.0*(1-pow(P/get_baseline(),1/5.255));
+  float alt_feet = alt_meters * 3.28084;
+  return(alt_feet);
+}
+
 void pressure_sensor::create_sensor(int _addr) {
   /* Create the sensor and initialize it
    * 
@@ -93,12 +101,13 @@ void pressure_sensor::initialize_sensor() {
   get_sensor().reset();
   int counter = 0
   while (get_sensor().begin() && counter < 5) {
-    serial.println("Pressure Sensor failed to initialize")
+    serial.println("Pressure Sensor failed to initialize");
     get_sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      serial.println("Pressure Sensor failed 5x, aborting!")
+      serial.println("Pressure Sensor failed 5x, aborting!");
+      // while(1);
     }
   } // end while
   set_baseline(get_sensor().getPressure(ADC_4096));
@@ -189,11 +198,12 @@ void GPS::initialize_GPS() {
   int counter = 0;
   while (myGPS.begin() && counter < 5) {
     digitalWrite(get_reset(), HIGH);
-    serial.println("GPS failed to initialize")
-    delay(50);
+    serial.println("GPS failed to initialize");
+    delay(500);
     counter++; 
     if (counter == 5) {
-      serial.println("GPS failed 5x, aborting!")
+      serial.println("GPS failed 5x, FAILING!");
+      // while(1);
     } // end if
   } // end while
 }
