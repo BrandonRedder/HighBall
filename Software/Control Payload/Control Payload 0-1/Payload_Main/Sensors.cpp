@@ -76,6 +76,12 @@ float pressure_sensor::read_pressure() {
 }
 
 float pressure_sensor::find_altitude() {
+  /* Determines the current altitude from a baseline
+   *
+   * Returns
+   * -------
+   *  float: current altitude above baseline in feet
+   */
   float P = read_pressure();
   // altitude calculation from sparkfun example
   float alt_meters = 44330.0*(1-pow(P/get_baseline(),1/5.255));
@@ -99,14 +105,14 @@ void pressure_sensor::initialize_sensor() {
   /* Initialize the sensor and print an error if it failed to initialize
    */
   get_sensor().reset();
-  int counter = 0
+  int counter = 0;
   while (get_sensor().begin() && counter < 5) {
-    serial.println("Pressure Sensor failed to initialize");
+    Serial.println("Pressure Sensor failed to initialize");
     get_sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      serial.println("Pressure Sensor failed 5x, aborting!");
+      Serial.println("Pressure Sensor failed 5x, aborting!");
       // while(1);
     }
   } // end while
@@ -136,6 +142,8 @@ void pressure_sensor::set_baseline(float _baseline) {
 #define IMU_DEFAULT_RX 17
 
 IMU::IMU(){
+  /* Constructor, tests serial communication and initializes the data to 0
+   */
   int status = comms_Test();
   if(status == '1'){
     SerialUSB.println("IMU Communication Success")
@@ -143,14 +151,20 @@ IMU::IMU(){
   else{
     SerialUSB.println("FAILED! IMU Communications.");
   }
-  IMU_Data _data;
-  _data.accelUp = 0;
-  _data.accelHoriz = 0;
-  _data.direction = 0;
-  set_data(_data);
+  /* IMU_Data _data; */
+  /* _data.accelUp = 0; */
+  /* _data.accelHoriz = 0; */
+  /* _data.direction = 0; */
+  set_data(0, 0, 0);
 }
 
 int IMU::comms_Test() {
+  /* Check communication between the IMU arduino and the main arduino
+   *
+   * Returns
+   * -------
+   *  int - 1 corresponds to sucess, 0 corresponds to failure
+   */
   int time = millis();
   Serial2.begin(9600);
   Serial2.print('1');
@@ -158,7 +172,7 @@ int IMU::comms_Test() {
   while((millis()-time) < 180000){
     if(Serial2.read() == '1'){
       Serial2.print('0');
-      return('1');
+      return(1);
     }
     Serial2.print('1');
     wait(500);
@@ -167,6 +181,12 @@ int IMU::comms_Test() {
 }
 
 IMU_Data IMU::read_IMU(){
+  /* Read current imu data for acceleration and direction
+   *
+   * Returns
+   * -------
+   *  IMU_Data - data corresponding to the current values on the IMU
+   */
   bool reading = false;
   std::String receivedValues = "";
   std::string delimiter = ",";
@@ -279,11 +299,11 @@ void GPS::initialize_GPS() {
   int counter = 0;
   while (myGPS.begin() && counter < 5) {
     digitalWrite(get_reset(), HIGH);
-    serial.println("GPS failed to initialize");
+    Serial.println("GPS failed to initialize");
     delay(500);
     counter++; 
     if (counter == 5) {
-      serial.println("GPS failed 5x, FAILING!");
+      Serial.println("GPS failed 5x, FAILING!");
       // while(1);
     } // end if
   } // end while

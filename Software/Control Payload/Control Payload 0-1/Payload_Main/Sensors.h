@@ -61,7 +61,7 @@ class IMU {
       int comms_Test();
       IMU_Data read_IMU();
       IMU_Data get_Data();
-      void set_Data(IMU_Data);
+      void set_Data(float, float, float);
     private:
       IMU_Data data;
 }
