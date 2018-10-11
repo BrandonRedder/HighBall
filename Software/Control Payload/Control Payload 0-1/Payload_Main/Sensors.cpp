@@ -1,5 +1,5 @@
 #include "Sensors.h"
-
+#include <string>
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
 #define TEMPERATURE_DEFAULT_PIN A2
@@ -75,9 +75,23 @@ float pressure_sensor::read_pressure() {
   return(get_sensor().getPressure(ADC_4096));
 }
 
+float pressure_sensor::find_altitude() {
+  /* Determines the current altitude from a baseline
+   *
+   * Returns
+   * -------
+   *  float: current altitude above baseline in feet
+   */
+  float P = read_pressure();
+  // altitude calculation from sparkfun example
+  float alt_meters = 44330.0*(1-pow(P/get_baseline(),1/5.255));
+  float alt_feet = alt_meters * 3.28084;
+  return(alt_feet);
+}
+
 void pressure_sensor::create_sensor(int _addr) {
   /* Create the sensor and initialize it
-   * 
+   *
    * Inputs
    * ------
    *  _addr: int representing the address of the sensor
@@ -91,14 +105,15 @@ void pressure_sensor::initialize_sensor() {
   /* Initialize the sensor and print an error if it failed to initialize
    */
   get_sensor().reset();
-  int counter = 0
+  int counter = 0;
   while (get_sensor().begin() && counter < 5) {
-    serial.println("Pressure Sensor failed to initialize")
+    Serial.println("Pressure Sensor failed to initialize");
     get_sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      serial.println("Pressure Sensor failed 5x, aborting!")
+      Serial.println("Pressure Sensor failed 5x, aborting!");
+      // while(1);
     }
   } // end while
   set_baseline(get_sensor().getPressure(ADC_4096));
@@ -121,6 +136,101 @@ void pressure_sensor::set_baseline(float _baseline) {
 }
 
 // }}}
+
+// IMU {{{
+#define IMU_DEFAULT_TX 16
+#define IMU_DEFAULT_RX 17
+
+IMU::IMU(){
+  /* Constructor, tests serial communication and initializes the data to 0
+   */
+  int status = comms_Test();
+  if(status == '1'){
+    SerialUSB.println("IMU Communication Success")
+  }
+  else{
+    SerialUSB.println("FAILED! IMU Communications.");
+  }
+  /* IMU_Data _data; */
+  /* _data.accelUp = 0; */
+  /* _data.accelHoriz = 0; */
+  /* _data.direction = 0; */
+  set_data(0, 0, 0);
+}
+
+int IMU::comms_Test() {
+  /* Check communication between the IMU arduino and the main arduino
+   *
+   * Returns
+   * -------
+   *  int - 1 corresponds to sucess, 0 corresponds to failure
+   */
+  int time = millis();
+  Serial2.begin(9600);
+  Serial2.print('1');
+  // check communication with IMU
+  while((millis()-time) < 180000){
+    if(Serial2.read() == '1'){
+      Serial2.print('0');
+      return(1);
+    }
+    Serial2.print('1');
+    wait(500);
+  }
+  return(0);
+}
+
+IMU_Data IMU::read_IMU(){
+  /* Read current imu data for acceleration and direction
+   *
+   * Returns
+   * -------
+   *  IMU_Data - data corresponding to the current values on the IMU
+   */
+  bool reading = false;
+  std::String receivedValues = "";
+  std::string delimiter = ",";
+  float numbers[3];
+  int numIdx=0;
+  while(Serial2.available() > 0){
+    int num = Serial2.read();
+    if (reading == true){
+      if (num != '>'){
+        //if new num(character) is not at the end, append string
+        receivedValues += (char)num;
+      }//end if end
+      else{
+        reading = false;
+        receivedVales += '\0';
+      }//done reading
+    }
+    //check for start character
+    else if (num == '<'){
+      reading = true;
+    }
+  }
+  size_t pos = 0;
+  std::String token;
+  while((pos = receivedValues.find(delimiter)) != std::string::npos){
+    token = receivedValues.substr(0,pos);
+    numbers[numIdx] = std::stof(token);
+    numIdx++;
+  }
+  set_Data(numbers[0], numbers[1], numbers[2]);
+}
+
+void IMU::set_Data(float accelU, float accelH, float dir){
+  data.accelUp = accelU;
+  data.accelHoriz = accelH;
+  data.direction = dir;
+}
+
+IMU_Data IMU::get_Data(){
+  return(data);
+}
+
+// }}}
+
 // GPS {{{
 #define GPS_DEFAULT_ADDR 0x10
 #define GPS_DEFAULT_WAKE 22
@@ -189,11 +299,12 @@ void GPS::initialize_GPS() {
   int counter = 0;
   while (myGPS.begin() && counter < 5) {
     digitalWrite(get_reset(), HIGH);
-    serial.println("GPS failed to initialize")
-    delay(50);
+    Serial.println("GPS failed to initialize");
+    delay(500);
     counter++; 
     if (counter == 5) {
-      serial.println("GPS failed 5x, aborting!")
+      Serial.println("GPS failed 5x, FAILING!");
+      // while(1);
     } // end if
   } // end while
 }
@@ -262,6 +373,6 @@ float check_battery(void)
   float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
   // TODOC: This equation is not obvious at first glance, provide some
   // explanation about what is doing.
-  return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) / 
+  return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) /
          (Battery_Max - Battery_Min));
 }

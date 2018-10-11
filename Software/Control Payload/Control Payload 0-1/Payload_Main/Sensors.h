@@ -31,6 +31,7 @@ class pressure_sensor {
     pressure_sensor(int);
     pressure_sensor(MS5803&);
     float read_pressure();
+    float find_altitude();
 
     void create_sensor(int);
     void initialize_sensor();
@@ -47,6 +48,23 @@ class pressure_sensor {
     float baseline;
 };
 
+//IMU
+struct IMU_Data{
+  float accelUp;
+  float accelHoriz;
+  float direction;
+};
+
+class IMU {
+  public:
+      IMU();
+      int comms_Test();
+      IMU_Data read_IMU();
+      IMU_Data get_Data();
+      void set_Data(float, float, float);
+    private:
+      IMU_Data data;
+}
 // GPS
 struct GPS_Data {
   float altitude;
@@ -95,7 +113,7 @@ class GPS {
 
 // Battery
 float check_battery();
-
+/*
 //Constants
 // TODOC: These should be explained a bit more
 //Temperature Sensor
@@ -122,5 +140,5 @@ float check_battery();
 #define Battery_Divider 1.15385
 #define Battery_Max 12.6
 #define Battery_Min 8.25
-
+*/
 #endif /* ifndef SENSORS_H */
