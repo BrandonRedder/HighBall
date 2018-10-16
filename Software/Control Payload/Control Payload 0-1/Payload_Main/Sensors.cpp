@@ -106,13 +106,14 @@ void pressure_sensor::initialize_sensor() {
    */
   get_sensor().reset();
   int counter = 0;
+  SerialUSB.println("Pressure Sensor Initializing");
   while (get_sensor().begin() && counter < 5) {
-    Serial.println("Pressure Sensor failed to initialize");
+    SerialUSB.println("Pressure Sensor failed to initialize");
     get_sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      Serial.println("Pressure Sensor failed 5x, aborting!");
+      SerialUSB.println("Pressure Sensor failed 5x, aborting!");
       // while(1);
     }
   } // end while
@@ -145,6 +146,7 @@ IMU::IMU(){
   /* Constructor, tests serial communication and initializes the data to 0
    */
   int status = comms_Test();
+  SerialUSB.println("Initializing IMU");
   if(status == '1'){
     SerialUSB.println("IMU Communication Success")
   }
@@ -297,13 +299,14 @@ void GPS::initialize_GPS() {
   digitalWrite(get_wake(), HIGH);
 
   int counter = 0;
+  SerialUSB.println("Initializing GPS");
   while (myGPS.begin() && counter < 5) {
     digitalWrite(get_reset(), HIGH);
-    Serial.println("GPS failed to initialize");
+    SerialUSB.println("GPS failed to initialize");
     delay(500);
     counter++; 
     if (counter == 5) {
-      Serial.println("GPS failed 5x, FAILING!");
+      SerialUSB.println("GPS failed 5x, FAILING!");
       // while(1);
     } // end if
   } // end while
