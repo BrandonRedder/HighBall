@@ -103,6 +103,7 @@ void pressure_sensor::create_sensor(ms5803_addr _addr) {
    * Inputs
    * ------
    *  _addr: int representing the address of the sensor
+
   // TODO: test whether this correctly sets the sensor variable
   MS5803 sensor(_addr);
   initialize_sensor();
@@ -152,7 +153,7 @@ IMU::IMU(){
   /* Constructor, tests serial communication and initializes the data to 0
    */
   int status = comms_Test();
-  SerialUSB.println("Initializing IMU");
+  Serial.println("Initializing IMU");
   if(status == '1'){
     Serial.println("IMU Communication Success");
   }
@@ -311,6 +312,7 @@ void GPS::initialize_GPS() {
     digitalWrite(get_reset(), HIGH);
     Serial.println("GPS failed to initialize");
     delay(500);
+    counter++;
     if (counter == 5) {
       Serial.println("GPS failed 5x, FAILING!");
       // while(1);

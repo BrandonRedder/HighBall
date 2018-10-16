@@ -8,9 +8,7 @@
 #define PRESSURE_02_ADR 0x77
 #define AUTO 1
 #define MANUAL 2
-SerialUSB.begin(115200);
-while(!SerialUSB);
-SerialUSB.println("USB Printing");
+
 temperature_sensor temp;
 pressure_sensor pressure1;
 pressure_sensor pressure2;
