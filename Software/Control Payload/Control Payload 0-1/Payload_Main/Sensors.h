@@ -5,7 +5,7 @@
 #include <SparkFun_MS5803_I2C.h>
 #include <SparkFun_I2C_GPS_Arduino_Library.h>
 #include <TinyGPS++.h>
-#include <SparkFunMPU9250-DMP.h>
+//#include <SparkFunMPU9250-DMP.h>
 
 //Temperature Sensor
 class temperature_sensor {
@@ -28,23 +28,25 @@ class temperature_sensor {
 class pressure_sensor {
   public:
     pressure_sensor();
-    pressure_sensor(int);
-    pressure_sensor(MS5803&);
+    //pressure_sensor(int);
+    //pressure_sensor(MS5803&);
     float read_pressure();
     float find_altitude();
 
     void create_sensor(int);
     void initialize_sensor();
 
-    int get_addr();
-    MS5803& get_sensor();
+    ms5803_addr get_addr();
+    //MS5803& get_sensor();
     float get_baseline();
-    void set_addr(int);
+    void set_addr(ms5803_addr);
     void set_baseline(float);
+
+    MS5803 sensor;
+
 
   private:
     int addr;
-    MS5803 sensor;
     float baseline;
 };
 
@@ -64,7 +66,7 @@ class IMU {
       void set_Data(float, float, float);
     private:
       IMU_Data data;
-}
+};
 // GPS
 struct GPS_Data {
   float altitude;

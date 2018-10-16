@@ -1,4 +1,4 @@
-#ifndef COMMUNICATIONS_H
+/*#ifndef COMMUNICATIONS_H
 #define COMMUNICATIONS_H
 
 #include "Sensors.h"

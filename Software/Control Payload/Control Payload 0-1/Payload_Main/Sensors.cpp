@@ -1,5 +1,13 @@
+#include <SparkFun_MS5803_I2C.h>
+#include <Wire.h>
+
 #include "Sensors.h"
-#include <string>
+#include <stdlib.h>
+#include <string.h>
+
+
+//MS5803 sensor(ADDRESS_HIGH);
+
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
 #define TEMPERATURE_DEFAULT_PIN A2
@@ -46,24 +54,24 @@ void temperature_sensor::set_pin(int _pin) {
 // Pressure Sensor {{{
 #define PRESSURE_DEFAULT_ADDR 0x76
 // Default constructor, assumes address=0x76
-pressure_sensor::pressure_sensor() {
-  set_addr(PRESSURE_DEFAULT_ADDR);
-  create_sensor(get_addr());
+pressure_sensor::pressure_sensor() : sensor(ADDRESS_HIGH) {
+//  set_addr(PRESSURE_DEFAULT_ADDR);
+//  create_sensor(get_addr());
 }
 
 // Constructor, user provided address
-pressure_sensor::pressure_sensor(int _addr) {
-  set_addr(_addr);
-  create_sensor(get_addr());
-}
+//pressure_sensor::pressure_sensor(ms5803_addr _addr) {
+//  MS5803 temp(ADDRESS_HIGH);
+
+//}
 
 // Constructor, user provided sensor
-pressure_sensor::pressure_sensor(MS5803& _sensor) {
+/*pressure_sensor::pressure_sensor(MS5803& _sensor) {
   // This is not the recommended method of interacting with this class.
   // Provided for edge use cases
   sensor = _sensor;
   initialize_sensor();
-}
+}*/
 
 float pressure_sensor::read_pressure() {
   /* Reads the current pressure
@@ -72,7 +80,7 @@ float pressure_sensor::read_pressure() {
    * -------
    *  float: current pressure read by the sensor
    */
-  return(get_sensor().getPressure(ADC_4096));
+  return(sensor.getPressure(ADC_4096));
 }
 
 float pressure_sensor::find_altitude() {
@@ -88,46 +96,46 @@ float pressure_sensor::find_altitude() {
   float alt_feet = alt_meters * 3.28084;
   return(alt_feet);
 }
-
-void pressure_sensor::create_sensor(int _addr) {
+/*
+void pressure_sensor::create_sensor(ms5803_addr _addr) {
   /* Create the sensor and initialize it
    *
    * Inputs
    * ------
    *  _addr: int representing the address of the sensor
-   */
+   
   // TODO: test whether this correctly sets the sensor variable
   MS5803 sensor(_addr);
   initialize_sensor();
-}
+}*/
 
 void pressure_sensor::initialize_sensor() {
   /* Initialize the sensor and print an error if it failed to initialize
    */
-  get_sensor().reset();
+  sensor.reset();
   int counter = 0;
-  while (get_sensor().begin() && counter < 5) {
-    Serial.println("Pressure Sensor failed to initialize");
-    get_sensor.reset();
+  while (sensor.begin() && counter < 5) {
+    //Serial.println("Pressure Sensor failed to initialize");
+    sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      Serial.println("Pressure Sensor failed 5x, aborting!");
+      //Serial.println("Pressure Sensor failed 5x, aborting!");
       // while(1);
     }
   } // end while
-  set_baseline(get_sensor().getPressure(ADC_4096));
+  set_baseline(sensor.getPressure(ADC_4096));
 }
 
 // get functions for each member variable
-int pressure_sensor::get_addr() {return(addr);}
+ms5803_addr pressure_sensor::get_addr() {return(addr);}
 
-MS5803& pressure_sensor::get_sensor() {return(sensor);}
+//MS5803& pressure_sensor::get_sensor() {return(sensor);}
 
 float pressure_sensor::get_baseline() {return(baseline);}
 
 // set functions for each member variable
-void pressure_sensor::set_addr(int _addr) {
+void pressure_sensor::set_addr(ms5803_addr _addr) {
   addr = _addr;
 }
 
@@ -146,16 +154,16 @@ IMU::IMU(){
    */
   int status = comms_Test();
   if(status == '1'){
-    SerialUSB.println("IMU Communication Success")
+    Serial.println("IMU Communication Success");
   }
   else{
-    SerialUSB.println("FAILED! IMU Communications.");
+    Serial.println("FAILED! IMU Communications.");
   }
   /* IMU_Data _data; */
   /* _data.accelUp = 0; */
   /* _data.accelHoriz = 0; */
   /* _data.direction = 0; */
-  set_data(0, 0, 0);
+  set_Data(0, 0, 0);
 }
 
 int IMU::comms_Test() {
@@ -175,7 +183,7 @@ int IMU::comms_Test() {
       return(1);
     }
     Serial2.print('1');
-    wait(500);
+    delay(500);
   }
   return(0);
 }
@@ -188,8 +196,8 @@ IMU_Data IMU::read_IMU(){
    *  IMU_Data - data corresponding to the current values on the IMU
    */
   bool reading = false;
-  std::String receivedValues = "";
-  std::string delimiter = ",";
+  String receivedValues = "";
+  String delimiter = ",";
   float numbers[3];
   int numIdx=0;
   while(Serial2.available() > 0){
@@ -201,7 +209,7 @@ IMU_Data IMU::read_IMU(){
       }//end if end
       else{
         reading = false;
-        receivedVales += '\0';
+        receivedValues += '\0';
       }//done reading
     }
     //check for start character
@@ -209,12 +217,13 @@ IMU_Data IMU::read_IMU(){
       reading = true;
     }
   }
-  size_t pos = 0;
-  std::String token;
-  while((pos = receivedValues.find(delimiter)) != std::string::npos){
-    token = receivedValues.substr(0,pos);
-    numbers[numIdx] = std::stof(token);
+  int pos = 0;
+  String token;
+  while((pos = receivedValues.indexOf(delimiter)) != -1){
+    token = receivedValues.substring(0,pos);
+    numbers[numIdx] = token.toFloat();
     numIdx++;
+    receivedValues.remove(0,pos);
   }
   set_Data(numbers[0], numbers[1], numbers[2]);
 }
@@ -242,7 +251,7 @@ GPS::GPS() {
   set_wake(GPS_DEFAULT_WAKE);
   set_reset(GPS_DEFAULT_RESETN);
   set_int(GPS_DEFAULT_INT);
-  create_GPS(get_addr());
+  create_GPS();
 }
 
 // Constructor, provide address
@@ -251,7 +260,7 @@ GPS::GPS(int _addr, int _wake, int _reset, int _int) {
   set_wake(_wake);
   set_reset(_reset);
   set_int(_int);
-  create_GPS(get_addr());
+  create_GPS();
 }
 
 GPS_Data GPS::read_GPS() {
@@ -367,6 +376,11 @@ void GPS::set_sats(int _sats) {
 
 // }}}
 // Battery Voltage {{{
+#define Battery A3
+#define Battery_Divider 1.15385
+#define Battery_Max 12.6
+#define Battery_Min 8.25
+
 float check_battery(void)
 {
   /* Measurement of the battery health */

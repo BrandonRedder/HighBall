@@ -1,4 +1,4 @@
-#include "Communications.h"
+/*#include "Communications.h"
 
 IridiumSBD modem(IridiumSerial, SLEEP_PIN, RING_PIN);
 
@@ -302,3 +302,4 @@ void ISBDDiagsCallback(IridiumSBD *device, char c)
   WiredSerial.write(c);
 }
 #endif
+*/

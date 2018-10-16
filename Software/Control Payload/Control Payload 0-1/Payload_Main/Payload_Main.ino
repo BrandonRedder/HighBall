@@ -9,8 +9,8 @@
 #define AUTO 1
 #define MANUAL 2
 temperature_sensor temp;
-pressure_sensor pressure1(PRESSURE_01_ADR);
-pressure_sensor pressure2(PRESSURE_02_ADR);
+pressure_sensor pressure1;
+pressure_sensor pressure2;
 IMU imu;
 GPS gps;
 altitude_control control;
@@ -18,17 +18,30 @@ unsigned long controlTime;
 unsigned long conditionTime;
 helium_ballast action;
 float altitude;
+int mode = MANUAL;
+
+float temperature;
+float altitude1;
+float altitude2;
+float velocity;
+IMU_Data imu_data;
+GPS_Data gps_data;
 
 void setup()
 {
   controlTime = millis();
-  conditionTime = controlTime();
+  conditionTime = controlTime;
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
+  Serial.begin(115200);
+  while(!Serial);
+  Serial.println("USB Printing");
+  
 }
 
 #define NO_ACTION 0
 #define DROP_BALLAST 1
 #define RELEASE_HELIUM 2
+
 
 void loop()
 {
@@ -37,15 +50,16 @@ void loop()
   //TODO: deal with cutdown
   //TODO: deal with anything else that would change
   //check current conditions
+
   if((millis() - conditionTime) >= 5*1000){//should we make this a variable time?
-    float temp = temp.read_temp();
-    float altitude1 = pressure1.find_altitude();
-    float altitude2 = pressure2.find_altitude();
-    float velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
+    temperature = temp.read_temp();
+    altitude1 = pressure1.find_altitude();
+    altitude2 = pressure2.find_altitude();
+    velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
     conditionTime = millis();
-    float altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
-    IMU_Data imu_data = imu.read_imu();
-    GPS_Data gps_data = gps.read_GPS();
+    altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
+    imu_data = imu.read_IMU();
+    gps_data = gps.read_GPS();
   }
 
   //run control algorithm every 5 minutes
