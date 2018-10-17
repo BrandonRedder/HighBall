@@ -9,7 +9,7 @@ void setup_Communications(void)
 
   // Start the serial ports
   WiredSerial.begin(115200);
-  while (!Serial);
+  while (!WiredSerial);
   IridiumSerial.begin(19200);
 
   // Setup the Iridium modem
@@ -18,33 +18,24 @@ void setup_Communications(void)
   int signalQuality = -1;
   int err = modem.getSignalQuality(signalQuality); // get signal quality
   if (start != ISBD_SUCCESS) {
-	  if (status == PRE_LAUNCH_STATE) {
+	  if (status == 10) {
       WiredSerial.print("Start Iridium failed: error ");
       WiredSerial.println(start);
     }
   }
   if (err != ISBD_SUCCESS) {
-	  if (status == PRE_LAUNCH_STATE) {
+	  if (status == 10) {
       WiredSerial.print("Get Signal quality failed: error ");
       WiredSerial.println(err);
 	  }
   } else {
-	  if (status == PRE_LAUNCH_STATE) {
+	  if (status == 10) {
       WiredSerial.print("Signal Quality: ");
       WiredSerial.println(signalQuality);
     }
   }  
 }
 
-// New data fields for communications
-// Acceleration
-float acc_magnitude;
-float acc_theta;
-float acc_phi;
-// Velocity
-float vel_magnitude;
-float vel_theta;
-float vel_phi;
 
 // Set timer between messages and create message sent bit
 uint32_t timer = millis();
@@ -61,17 +52,16 @@ bool emergency = false;
 uint8_t buffer[30];
 
 // Call Iridium module from state machine 
-void call_iridium(void) {
+void call_iridium(int status) {
   // Check if the modulel is asleep/ responds
   int err = modem.sleep();
   if (err != ISBD_SUCCESS && err != ISBD_IS_ASLEEP) {
-	if (status == PRE_LAUNCH_STATE) {
+	if (status == 10) {
     WiredSerial.print("Sleep failed: error ");
     WiredSerial.println(err);
     }
   }
   
-  check_status();
   uint32_t t = millis();
   uint32_t dt = timer - t;
   if (emergency || dt > Message_Rate*1000 || !messageSent) {
@@ -81,13 +71,11 @@ void call_iridium(void) {
 	      emergency = false;
       }
     }
-    encode_all();
-    send_message();
+    send_message(status);
   }
-  delay(5000);
 }
 
-void send_message(void) {
+void send_message(int status) {
   size_t bufferSize = sizeof(buffer);
 	
   int err;
@@ -96,7 +84,7 @@ void send_message(void) {
   if (err != ISBD_SUCCESS)
   {
     messageSent = false;
-    if (status == PRE_LAUNCH_STATE) {
+    if (status == 10) {
       WiredSerial.print("Message failed to send");
       WiredSerial.println(err);
     }
@@ -104,7 +92,7 @@ void send_message(void) {
   else // success!
   {
     messageSent = true;
-    if (status == PRE_LAUNCH_STATE) {
+    if (status == 10) {
       WiredSerial.print("Inbound buffer size is ");
       WiredSerial.println(bufferSize);
       for (int i=0; i<bufferSize; ++i)
@@ -119,93 +107,88 @@ void send_message(void) {
         WiredSerial.print(" ");
       }
     }
-    decode_message();
   }
 }
 
-void check_status (void) {
-  switch (status) {
-    case PRE_LAUNCH_STATE: { Message_Rate = 5*60;
-                       break;
-                     }
-    case FLIGHT_STATE: { Message_Rate = 5*60;
-                   break;
-                 }
-    case FALLING_STATE: { Message_Rate = 20;
-                    break;
-                  }
-    case RECOVERY_STATE: { Message_Rate = 5*60;
-                     break;
-                   }
-    case TEST_STATE: { Message_Rate = 5*60;
-                 break;
-               }
-    default: { Message_Rate = 5*60;
-               break;
-             }
-  }
-}
 
-void encode_all (void) {
-  // Temperature Data
-  float temperature0 =  temperature_sensor::read_temp(); 
-  int new_temperature = convert_float(temperature0, TEMP_MIN, TEMP_STEP);
+void encode_message (struct Outgoing_Data *data) {
+  // Temperature Data 
+  int new_temperature = convert_float((*data).temperature, TEMP_MIN, TEMP_STEP);
   encode_data (new_temperature, TEMP_OFFSET, TEMP_BITS);
   // Pressure Data
-  float pressure = pressure_sensor::read_pressure();
-  int new_pressure = convert_float(pressure, PRS_MIN, PRS_STEP);
+  int new_pressure = convert_float((*data).pressure, PRS_MIN, PRS_STEP);
   encode_data (new_pressure, PRS_OFFSET, PRS_BITS);
   // IMU Data
-  convert_IMU_data();
-  int new_acc_magnitude = convert_float(acc_magnitude, ACC_MAG_MIN, ACC_MAG_STEP);
+  int new_acc_magnitude = convert_float((*data).acc_magnitude, ACC_MAG_MIN, ACC_MAG_STEP);
   encode_data (new_acc_magnitude, ACC_MAG_OFFSET, ACC_MAG_BITS);
-  int new_acc_theta = convert_float(acc_theta, ACC_THETA_MIN, ACC_THETA_STEP);
+  int new_acc_theta = convert_float((*data).acc_theta, ACC_THETA_MIN, ACC_THETA_STEP);
   encode_data (new_acc_theta, ACC_THETA_OFFSET, ACC_THETA_BITS);
-  int new_acc_phi = convert_float(acc_phi, ACC_PHI_MIN, ACC_PHI_STEP);
+  int new_acc_phi = convert_float((*data).acc_phi, ACC_PHI_MIN, ACC_PHI_STEP);
   encode_data (new_acc_phi, ACC_PHI_OFFSET, ACC_PHI_BITS);
   // GPS Data
-  float altitude0 = GPS::get_alt(); 
-  int new_altitude = convert_float(altitude0, ALT_MIN, ALT_STEP);
+  int new_altitude = convert_float((*data).altitude, ALT_MIN, ALT_STEP);
   encode_data (new_altitude, ALT_OFFSET, ALT_BITS);
-  float latitude0 = GPS::get_lat(); 
-  int new_latitude = convert_float(latitude0, LAT_MIN, LAT_STEP);
-  encode_data (new_latitude, LAT_OFFSET, LAT_BITS);
-  float longitude0 = GPS::get_long(); 
-  int new_longitude = convert_float(longitude0, LONGITUDE_MIN, LONG_STEP);
+  int new_latitude = convert_float((*data).latitude, LAT_MIN, LAT_STEP);
+  encode_data (new_latitude, LAT_OFFSET, LAT_BITS); 
+  int new_longitude = convert_float((*data).longitude, LONGITUDE_MIN, LONG_STEP);
   encode_data (new_longitude, LONG_OFFSET, LONG_BITS);
   // Battery Data
-  float BatteryPercentage = check_battery();
-  int new_battery_percentage = convert_float(BatteryPercentage, BATT_MIN, BATT_STEP);
+  int new_battery_percentage = convert_float((*data).BatteryPercentage, BATT_MIN, BATT_STEP);
   encode_data (new_battery_percentage, BATT_OFFSET, BATT_BITS);
   // Velovity Data
-    // Add here
+  int new_vel_magnitude = convert_float((*data).vel_magnitude, VEL_MAG_MIN, VEL_MAG_STEP);
+  encode_data (new_vel_magnitude, VEL_MAG_OFFSET, VEL_MAG_BITS);
+  int new_vel_theta = convert_float((*data).vel_theta, VEL_THETA_MIN, VEL_THETA_STEP);
+  encode_data (new_vel_theta, VEL_THETA_OFFSET, VEL_THETA_BITS);
+  int new_vel_phi = convert_float((*data).vel_phi, VEL_PHI_MIN, VEL_PHI_STEP);
+  encode_data (new_vel_phi, VEL_PHI_OFFSET, VEL_PHI_BITS);
   // Ballast Data
-    // Add here
+  encode_data ((*data).ballast, BALL_OFFSET, BALL_BITS);
+  // Helium Data
+  encode_data ((*data).helium, HEL_OFFSET, HEL_BITS);
+  // Time Data
+  int time = millis()/1000;
+  encode_data (time, TIME_OFFSET, TIME_BITS);
+  // State Data
+  encode_data ((*data).state, STATE_OFFSET, STATE_BITS);
+  // Control Mode Data
+  encode_data ((*data).control_mode, CTRL_OFFSET, CTRL_BITS);
+  // Emergency Data
+  encode_data ((*data).emergency, EMRG_OFFSET, EMRG_BITS);
 }
 
-void decode_message (void) {
-  // First byte of message tells command type
-  int command_byte = (int)(buffer[0]);
-  
-  if (command_byte == 10) {
-    // Command 1
-  }
-    
-  if (command_byte == 20) {
-    // Command 2
-  }
-    
-  if (command_byte == 30) {
-    // Command 3
-  }
-    
-  if (command_byte == 40) {
-    // Command 4
-  }
-    
-  if (command_byte == 50) {
-    // Command 5
-  }
+void decode_message (struct Incoming_Data *data) {
+    // Initiallize temporary float variable
+	float temp;
+	// Set recieved values using incoming message bits
+	data->altitude = decode_data (REC_ALT_MIN, REC_ALT_STEP, REC_ALT_OFFSET, REC_ALT_LENGTH);
+data->altitude_buffer = decode_data (REC_ALT_BUF_MIN, REC_ALT_BUF_STEP, REC_ALT_BUF_OFFSET, REC_ALT_BUF_LENGTH);
+  data->lat_degree = decode_data (REC_LAT_MIN, REC_LAT_STEP, REC_LAT_OFFSET, REC_LAT_LENGTH);
+  data->lat_deg_min = decode_data (REC_LAT_MIN_MIN, REC_LAT_MIN_STEP, REC_LAT_MIN_OFFSET, REC_LAT_MIN_LENGTH);
+  data->long_deg = decode_data (REC_LONG_MIN, REC_LONG_STEP, REC_LONG_OFFSET, REC_LONG_LENGTH);
+  data->long_deg_min = decode_data (REC_LONG_MIN_MIN, REC_LONG_MIN_STEP, REC_LONG_MIN_OFFSET, REC_LONG_MIN_LENGTH);
+  temp = decode_data (REC_CUT_MIN, REC_CUT_STEP, REC_CUT_OFFSET, REC_CUT_LENGTH);
+  data->cutdown = temp > 2.5;
+  data->update_rate = (int)decode_data (REC_UPD_MIN, REC_UPD_STEP, REC_UPD_OFFSET, REC_UPD_LENGTH);
+  data->hel_alpha = decode_data (REC_HEL_A_MIN, REC_HEL_A_STEP, REC_HEL_A_OFFSET, REC_HEL_A_LENGTH);
+  data->hel_beta = decode_data (REC_HEL_B_MIN, REC_HEL_B_STEP, REC_HEL_B_OFFSET, REC_HEL_B_LENGTH);
+  data->hel_gamma = decode_data (REC_HEL_G_MIN, REC_HEL_G_STEP, REC_HEL_G_OFFSET, REC_HEL_G_LENGTH);
+  data->bal_alpha = decode_data (REC_BAL_A_MIN, REC_BAL_A_STEP, REC_BAL_A_OFFSET, REC_BAL_A_LENGTH);
+  data->bal_beta = decode_data (REC_BAL_B_MIN, REC_BAL_B_STEP, REC_BAL_B_OFFSET, REC_BAL_B_LENGTH);
+  data->bal_gamma = decode_data (REC_BAL_G_MIN, REC_BAL_G_STEP, REC_BAL_G_OFFSET, REC_BAL_G_LENGTH);
+  data->length_vent = decode_data (REC_VENT_TIME_MIN, REC_VENT_TIME_STEP, REC_VENT_TIME_OFFSET, REC_VENT_TIME_LENGTH);
+  data->vent_inc = decode_data (REC_VENT_INC_MIN, REC_VENT_INC_STEP, REC_VENT_INC_OFFSET, REC_VENT_INC_LENGTH);
+  data->ballast_inc = decode_data (REC_BAL_INC_MIN, REC_BAL_INC_STEP, REC_BAL_INC_OFFSET, REC_BAL_INC_LENGTH);
+  data->temp_setpoint = decode_data (REC_TEMP_S_MIN, REC_TEMP_S_STEP, REC_TEMP_S_OFFSET, REC_TEMP_S_LENGTH);
+  data->temp_P = decode_data (REC_TEMP_P_MIN, REC_TEMP_P_STEP, REC_TEMP_P_OFFSET, REC_TEMP_P_LENGTH);
+  data->temp_I = decode_data (REC_TEMP_I_MIN, REC_TEMP_I_STEP, REC_TEMP_I_OFFSET, REC_TEMP_I_LENGTH);
+  data->temp_D = decode_data (REC_TEMP_D_MIN, REC_TEMP_D_STEP, REC_TEMP_D_OFFSET, REC_TEMP_D_LENGTH);
+  data->control_mode = (int)decode_data (REC_CTRL_MIN, REC_CTRL_STEP, REC_CTRL_OFFSET, REC_CTRL_LENGTH);
+  temp = decode_data (REC_MAN_ADJ_MIN, REC_MAN_ADJ_STEP, REC_MAN_ADJ_OFFSET, REC_MAN_ADJ_LENGTH);
+  data->manual_adjust = temp > 0.5;
+  temp = decode_data (REC_MAN_SEL_MIN, REC_MAN_SEL_STEP, REC_MAN_SEL_OFFSET, REC_MAN_SEL_LENGTH);
+  data->manual_select = temp > 0.5;
+  data->manual_amount = (int)decode_data (REC_MAN_AMT_MIN, REC_MAN_AMT_STEP, REC_MAN_AMT_OFFSET, REC_MAN_AMT_LENGTH);
 }
 
 // Convert raw integer to compressed data type
@@ -249,7 +232,7 @@ void encode_data (int data, int bit_offset, int bit_length) {
 } 
 
 float decode_data (float min, float step, int bit_offset, int bit_length) {
-  // Encode binary data into appropriate space in buffer
+  // Decode binary data from buffer
   int data;
   int first_byte = bit_offset >> 3;
   int last_byte = (bit_offset + bit_length) >> 3;
@@ -273,13 +256,6 @@ float decode_data (float min, float step, int bit_offset, int bit_length) {
     }
   }
   return (float)(data*step)+min;
-}
-
-void convert_IMU_data(void) {
-  IMU_OUTPUT imu_data = read_IMU_01();
-  acc_magnitude = sqrtf(powf(imu_data.q0,2) + powf(imu_data.q1,2) + powf(imu_data.q3,2));
-  acc_theta = acos(imu_data.q2/acc_magnitude);
-  acc_phi = atan2(imu_data.q1,imu_data.q0);
 }
 
 bool ISBDCallback(void) // Called while waiting for retries during communications

@@ -41,8 +41,9 @@ int oscillateHeliumServo (int period, int repetitions, int degree) {
   if (!HeliumOpen) {
     for(int i; i < repetitions; i++) {
       HeliumServo.write(HeliumStartAngle+degree);
-      delay(period);
+      delay(period/2);
       HeliumServo.write(HeliumStartAngle);
+      delay(period/2);
     }
     return 1;
   } else {
@@ -61,8 +62,9 @@ void setBallastServo (int angle) {
 void oscillateBallastServo (int period, int repetitions, int degree) {
     for(int i; i < repetitions; i++) {
       BallastServo.write(BallastStartAngle+degree);
-      delay(period);
+      delay(period/2);
       BallastServo.write(BallastStartAngle);
+      delay(period/2);
     }
 }
 
