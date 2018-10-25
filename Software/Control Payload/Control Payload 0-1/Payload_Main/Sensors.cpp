@@ -151,18 +151,6 @@ void pressure_sensor::set_baseline(float _baseline) {
 IMU::IMU(){
   /* Constructor, tests serial communication and initializes the data to 0
    */
-  int status = comms_Test();
-  Serial.println("Initializing IMU");
-  if(status == '1'){
-    Serial.println("IMU Communication Success");
-  }
-  else{
-    Serial.println("FAILED! IMU Communications.");
-  }
-  /* IMU_Data _data; */
-  /* _data.accelUp = 0; */
-  /* _data.accelHoriz = 0; */
-  /* _data.direction = 0; */
   set_Data(0, 0, 0);
 }
 
@@ -238,6 +226,17 @@ IMU_Data IMU::get_Data(){
   return(data);
 }
 
+void IMU::initialize_IMU() {
+  Serial.println("Initializing IMU");
+  int status = comms_Test();
+  if(status == '1'){
+    Serial.println("IMU Communication Success");
+  }
+  else{
+    Serial.println("FAILED! IMU Communications.");
+  }
+}
+
 // }}}
 
 // GPS {{{
@@ -251,7 +250,6 @@ GPS::GPS() {
   set_wake(GPS_DEFAULT_WAKE);
   set_reset(GPS_DEFAULT_RESETN);
   set_int(GPS_DEFAULT_INT);
-  create_GPS();
 }
 
 // Constructor, provide address
@@ -260,7 +258,6 @@ GPS::GPS(int _addr, int _wake, int _reset, int _int) {
   set_wake(_wake);
   set_reset(_reset);
   set_int(_int);
-  //create_GPS();
 }
 
 GPS_Data GPS::read_GPS() {

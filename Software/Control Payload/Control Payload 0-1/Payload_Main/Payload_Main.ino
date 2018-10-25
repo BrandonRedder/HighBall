@@ -18,7 +18,7 @@
 pressure_sensor pressure1(ADDRESS_HIGH);
 pressure_sensor pressure2(ADDRESS_LOW);
 //IMU imu;
-//GPS gps;
+GPS gps;
 //altitude_control control;
 // Servo Setup
 Servo helium_servo;
@@ -42,16 +42,23 @@ GPS_Data gps_data;
 void setup()
 {
   Serial.begin(9600);
-  //while(!Serial);
+
   Serial.println("Before Pressure");
   pressure1.initialize_sensor();
   pressure2.initialize_sensor();
   Serial.println("After Pressure");
+
   Serial.println("Before GPS");
-  //gps.create_GPS();
+  gps.create_GPS();
   Serial.println("After GPS");
+
+  /* Serial.println("Before IMU"); */
+  /* imu.initialize_IMU(); */
+  /* Serial.println("After IMU") */
+
   helium_servo.attach(HELIUM_SERVO);
   ballast_servo.attach(BALLAST_SERVO);
+
   controlTime = millis();
   conditionTime = controlTime;
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
@@ -76,15 +83,26 @@ void loop()
     //temperature = temp.read_temp();
     altitude1 = pressure1.find_altitude();
     altitude2 = pressure2.find_altitude();
-    Serial.println("Altitude 1 = " + String(altitude1));
-    Serial.println("Altitude 2 = " + String(altitude2));
+    Serial.println("");
+    Serial.println("Pressure Sensor Altitude 1 = " + String(altitude1));
+    Serial.println("Presure Sensor Altitude 2 = " + String(altitude2));
     velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
-    Serial.println("Velocity = " + String(velocity));
+    Serial.println("Pressure Sensor Velocity = " + String(velocity));
     conditionTime = millis();
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
-    Serial.println("Altitude = " + String(altitude));
+    Serial.println("Pressure Sensor Altitude = " + String(altitude));
+
     //imu_data = imu.read_IMU();
-    //gps_data = gps.read_GPS();
+    //Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
+    //Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
+    //Serial.println("IMU Direction = " + String(imu_data.direction));
+
+    gps_data = gps.read_GPS();
+    Serial.println("GPS Altitude = " + String(gps_data.altitude))
+    Serial.println("GPS latitude = " + String(gps_data.latitude))
+    Serial.println("GPS longitude = " + String(gps_data.longitude))
+    Serial.println("GPS satellites = " + String(gps_data.satellites))
+    Serial.println("");
   }
 
   //run control algorithm every 5 minutes
