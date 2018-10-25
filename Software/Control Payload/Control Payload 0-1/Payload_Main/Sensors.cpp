@@ -52,18 +52,16 @@ void temperature_sensor::set_pin(int _pin) {
 
 // }}}
 // Pressure Sensor {{{
-#define PRESSURE_DEFAULT_ADDR 0x76
+//#define PRESSURE_DEFAULT_ADDR 0x76
 // Default constructor, assumes address=0x76
 pressure_sensor::pressure_sensor() : sensor(ADDRESS_HIGH) {
-//  set_addr(PRESSURE_DEFAULT_ADDR);
-//  create_sensor(get_addr());
+  //initialize_sensor();
 }
 
 // Constructor, user provided address
-//pressure_sensor::pressure_sensor(ms5803_addr _addr) {
-//  MS5803 temp(ADDRESS_HIGH);
-
-//}
+pressure_sensor::pressure_sensor(ms5803_addr _addr) : sensor(_addr) {
+  //initialize_sensor();
+}
 
 // Constructor, user provided sensor
 /*pressure_sensor::pressure_sensor(MS5803& _sensor) {
@@ -115,15 +113,16 @@ void pressure_sensor::initialize_sensor() {
   sensor.reset();
   int counter = 0;
   while (sensor.begin() && counter < 5) {
-    //Serial.println("Pressure Sensor failed to initialize");
+    Serial.println("Pressure Sensor failed to initialize");
     sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
-      //Serial.println("Pressure Sensor failed 5x, aborting!");
+      Serial.println("Pressure Sensor failed 5x, aborting!");
       // while(1);
     }
   } // end while
+  Serial.println("Pressure Sensor initialized");
   set_baseline(sensor.getPressure(ADC_4096));
 }
 
@@ -261,7 +260,7 @@ GPS::GPS(int _addr, int _wake, int _reset, int _int) {
   set_wake(_wake);
   set_reset(_reset);
   set_int(_int);
-  create_GPS();
+  //create_GPS();
 }
 
 GPS_Data GPS::read_GPS() {

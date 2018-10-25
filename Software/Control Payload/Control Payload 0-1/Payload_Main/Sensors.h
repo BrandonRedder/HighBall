@@ -28,7 +28,7 @@ class temperature_sensor {
 class pressure_sensor {
   public:
     pressure_sensor();
-    //pressure_sensor(int);
+    pressure_sensor(ms5803_addr);
     //pressure_sensor(MS5803&);
     float read_pressure();
     float find_altitude();

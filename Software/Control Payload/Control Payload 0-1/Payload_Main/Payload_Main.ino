@@ -3,18 +3,29 @@
 #include "Communications.h"
 #include "Control.h"
 #include "State_Machine.h"
+#include <Servo.h>
 
 #define PRESSURE_01_ADR 0x76
 #define PRESSURE_02_ADR 0x77
 #define AUTO 1
 #define MANUAL 2
 
-temperature_sensor temp;
-pressure_sensor pressure1;
-pressure_sensor pressure2;
-IMU imu;
-GPS gps;
-altitude_control control;
+#define HELIUM_SERVO 7
+#define BALLAST_SERVO 6
+
+
+//temperature_sensor temp;
+pressure_sensor pressure1(ADDRESS_HIGH);
+pressure_sensor pressure2(ADDRESS_LOW);
+//IMU imu;
+//GPS gps;
+//altitude_control control;
+// Servo Setup
+Servo helium_servo;
+Servo ballast_servo;
+int helium_pos = 0;
+int ballast_pos = 0;
+
 unsigned long controlTime;
 unsigned long conditionTime;
 helium_ballast action;
@@ -30,13 +41,20 @@ GPS_Data gps_data;
 
 void setup()
 {
+  Serial.begin(9600);
+  //while(!Serial);
+  Serial.println("Before Pressure");
+  pressure1.initialize_sensor();
+  pressure2.initialize_sensor();
+  Serial.println("After Pressure");
+  Serial.println("Before GPS");
+  //gps.create_GPS();
+  Serial.println("After GPS");
+  helium_servo.attach(HELIUM_SERVO);
+  ballast_servo.attach(BALLAST_SERVO);
   controlTime = millis();
   conditionTime = controlTime;
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
-  Serial.begin(115200);
-  while(!Serial);
-  Serial.println("USB Printing");
-  
 }
 
 #define NO_ACTION 0
@@ -46,6 +64,8 @@ void setup()
 
 void loop()
 {
+  //Serial.println("in loop");
+  
   //TODO: check communication (maybe output a struct that contains changes (manual mode, cutdown, etc))
   //TODO: deal with mode change
   //TODO: deal with cutdown
@@ -53,20 +73,24 @@ void loop()
   //check current conditions
 
   if((millis() - conditionTime) >= 5*1000){//should we make this a variable time?
-    temperature = temp.read_temp();
+    //temperature = temp.read_temp();
     altitude1 = pressure1.find_altitude();
     altitude2 = pressure2.find_altitude();
+    Serial.println("Altitude 1 = " + String(altitude1));
+    Serial.println("Altitude 2 = " + String(altitude2));
     velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
+    Serial.println("Velocity = " + String(velocity));
     conditionTime = millis();
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
-    imu_data = imu.read_IMU();
-    gps_data = gps.read_GPS();
+    Serial.println("Altitude = " + String(altitude));
+    //imu_data = imu.read_IMU();
+    //gps_data = gps.read_GPS();
   }
 
   //run control algorithm every 5 minutes
   if(((millis()-controlTime) >= 5*60*1000) && mode == AUTO){//should we make this a variable time?
-    action = control.get_action(altitude, velocity, imu_data.accelUp);
-    float battery_level = check_battery();
+    //action = control.get_action(altitude, velocity, imu_data.accelUp);
+    //float battery_level = check_battery();
   } else if (mode == MANUAL) {
     //action = getCommunicationAction(); // TODO: Kyle can you interface the communciation override here?
   }
@@ -83,4 +107,29 @@ float verticalVelocityCalc(float altitudeNew, float altitudeOld, unsigned long t
 float altitudeCalc(float alt1, float alt2) {
   float alt = (alt1 + alt2)/2;
   return(alt);
+}
+
+void open_close_helium() {
+  if (helium_pos == 0) {
+    helium_servo.write(180);
+    helium_pos = 180;
+  } else if (helium_pos == 180) {
+    helium_servo.write(0);
+    helium_pos = 0;
+  }
+}
+
+void release_ballast(int n) {
+  // n = number of drops
+  for (int i = 0; i < n; i++) {
+    if(ballast_pos == 0) {
+      ballast_servo.write(90);
+      ballast_pos = 90;
+      delay(1350);
+    } else if(ballast_pos == 90) {
+      ballast_servo.write(0);
+      ballast_pos = 0;
+      delay(1350);
+    }
+  }
 }
