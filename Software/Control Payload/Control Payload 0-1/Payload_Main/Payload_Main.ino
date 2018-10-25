@@ -98,10 +98,10 @@ void loop()
     //Serial.println("IMU Direction = " + String(imu_data.direction));
 
     gps_data = gps.read_GPS();
-    Serial.println("GPS Altitude = " + String(gps_data.altitude))
-    Serial.println("GPS latitude = " + String(gps_data.latitude))
-    Serial.println("GPS longitude = " + String(gps_data.longitude))
-    Serial.println("GPS satellites = " + String(gps_data.satellites))
+    Serial.println("GPS Altitude = " + String(gps_data.altitude));
+    Serial.println("GPS latitude = " + String(gps_data.latitude));
+    Serial.println("GPS longitude = " + String(gps_data.longitude));
+    Serial.println("GPS satellites = " + String(gps_data.satellites));
     Serial.println("");
   }
 
@@ -118,7 +118,7 @@ void loop()
 }
 
 float verticalVelocityCalc(float altitudeNew, float altitudeOld, unsigned long timeNew, unsigned long timeOld){
-  float velocity = (altitudeNew - altitudeOld)/(timeNew-timeOld);
+  float velocity = (altitudeNew - altitudeOld) / (timeNew-timeOld) * 1000;
   return(velocity);
 }
 

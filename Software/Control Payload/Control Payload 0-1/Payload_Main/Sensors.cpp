@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-//MS5803 sensor(ADDRESS_HIGH);
-
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
 #define TEMPERATURE_DEFAULT_PIN A2
@@ -243,7 +240,7 @@ void IMU::initialize_IMU() {
 #define GPS_DEFAULT_ADDR 0x10
 #define GPS_DEFAULT_WAKE 22
 #define GPS_DEFAULT_RESETN 23
-#define GPS_DEFAULT_INT 24
+#define GPS_DEFAULT_INT 2
 // Default Constructor, assumes default addr is 0x10
 GPS::GPS() {
   set_addr(GPS_DEFAULT_ADDR);
@@ -314,6 +311,7 @@ void GPS::initialize_GPS() {
       // while(1);
     } // end if
   } // end while
+  Serial.println("GPS Initialized");
 }
 
 // get functions
