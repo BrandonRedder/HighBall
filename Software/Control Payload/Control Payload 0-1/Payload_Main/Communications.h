@@ -4,9 +4,10 @@
 #include "IridiumSBD.h"
 #include "math.h"
 
+#define Testing true
+
 //Constants
 #define IridiumSerial Serial1
-#define WiredSerial Serial
 #define SLEEP_PIN 25
 #define RING_PIN 3
 #define DIAGNOSTICS true
@@ -20,76 +21,76 @@
 // Temperature Data
 #define TEMP_MIN -88
 #define TEMP_STEP .25
-#define TEMP_OFFSET 128
+#define TEMP_OFFSET 0
 #define TEMP_BITS 9
 // Pressure Data
 #define PRS_MIN 0
 #define PRS_STEP .25
-#define PRS_OFFSET 167
+#define PRS_OFFSET 9
 #define PRS_BITS 12
 // IMU Data
 #define ACC_MAG_MIN 0
 #define ACC_MAG_STEP .001
-#define ACC_MAG_OFFSET 95
+#define ACC_MAG_OFFSET 21
 #define ACC_MAG_BITS 14
 
 #define ACC_THETA_MIN 0
 #define ACC_THETA_STEP 0.0125663706
-#define ACC_THETA_OFFSET 109
+#define ACC_THETA_OFFSET 35
 #define ACC_THETA_BITS 10
 
 #define ACC_PHI_MIN 0
 #define ACC_PHI_STEP 0.00628318531
-#define ACC_PHI_OFFSET 119
+#define ACC_PHI_OFFSET 45
 #define ACC_PHI_BITS 9
 // GPS Data
 #define ALT_MIN -5000
 #define ALT_STEP 3
-#define ALT_OFFSET 0
+#define ALT_OFFSET 54
 #define ALT_BITS 14
 
 #define LAT_MIN -100
 #define LAT_STEP .0001
-#define LAT_OFFSET 14
+#define LAT_OFFSET 68
 #define LAT_BITS 23
 
 #define LONGITUDE_MIN 18
 #define LONG_STEP .0001
-#define LONG_OFFSET 37
+#define LONG_OFFSET 91
 #define LONG_BITS 23
 
 // Velovity Data
 #define VEL_MAG_MIN 0
 #define VEL_MAG_STEP 0.001
-#define VEL_MAG_OFFSET 60
+#define VEL_MAG_OFFSET 114
 #define VEL_MAG_BITS 16
 
 #define VEL_THETA_MIN 0
 #define VEL_THETA_STEP 0.0125663706
-#define VEL_THETA_OFFSET 76
+#define VEL_THETA_OFFSET 130
 #define VEL_THETA_BITS 10
 
 #define VEL_PHI_MIN 0
 #define VEL_PHI_STEP 0.00628318531
-#define VEL_PHI_OFFSET 86
+#define VEL_PHI_OFFSET 140
 #define VEL_PHI_BITS 9
 
 // Helium Data
 #define HEL_MIN 0
 #define HEL_STEP 1
-#define HEL_OFFSET 137
+#define HEL_OFFSET 149
 #define HEL_BITS 10
 
 // Ballast Data
 #define BALL_MIN 0
-#define BALL_STEP .1
-#define BALL_OFFSET 147
+#define BALL_STEP 1
+#define BALL_OFFSET 159
 #define BALL_BITS 10
 
 // Battery Data
 #define BATT_MIN 0
 #define BATT_STEP .1
-#define BATT_OFFSET 157
+#define BATT_OFFSET 169
 #define BATT_BITS 10
 
 // Time Data
@@ -124,9 +125,9 @@
 #define REC_ALT_BUF_LENGTH 10
 
 // rec_lat_degree
-#define REC_LAT_MIN -16
+#define REC_LAT_MIN 18
 #define REC_LAT_STEP 1
-#define REC_LAT_OFFSET 23 
+#define REC_LAT_OFFSET 23
 #define REC_LAT_LENGTH 5
 
 // rec_lat_deg_min
@@ -136,7 +137,7 @@
 #define REC_LAT_MIN_LENGTH 18
 
 // rec_long_deg
-#define REC_LONG_MIN -16
+#define REC_LONG_MIN -100
 #define REC_LONG_STEP 1
 #define REC_LONG_OFFSET 46
 #define REC_LONG_LENGTH 5
@@ -268,15 +269,13 @@ struct Incoming_Data
 	float altitude;
 	float altitude_buffer;
 	float lat_degree;
-	float lat_deg_min;
+	double lat_deg_min;
 	float long_deg;
-	float long_deg_min;
+	double long_deg_min;
 	// Cutdown
 	bool cutdown;
 	// Protocol
 	int update_rate;
-	// Control Mode
-	int control_mode;
 	// Advanced Control
 	float hel_alpha;
 	float hel_beta;
@@ -288,15 +287,18 @@ struct Incoming_Data
 	float length_vent;
 	float vent_inc;
 	float ballast_inc;
+    // Temperature Control
+    float temp_setpoint;
+    float temp_P;
+    float temp_I;
+    float temp_D;
+    // Control Mode
+    int control_mode;
 	// Manual Control
 	bool manual_adjust;
 	bool manual_select;
 	int manual_amount;
-	// Temperature Control
-	float temp_setpoint;
-	float temp_P;
-	float temp_I;
-	float temp_D;
+
 };
 
 struct Outgoing_Data
@@ -311,18 +313,18 @@ struct Outgoing_Data
 	float acc_phi;
 	// GPS Data
 	float altitude;
-	float latitude;
-	float longitude;
-	// Battery Data
-	float BatteryPercentage;
+	double latitude;
+	double longitude;
 	// Velovity Data
 	float vel_magnitude;
 	float vel_theta;
 	float vel_phi;
+    // Helium Data
+    int helium; 
 	// Ballast Data
 	int ballast;
-	// Helium Data
-	int helium;
+    // Battery Data
+    float BatteryPercentage;
 	// Time Data
 	int time;
 	// State Data
@@ -333,8 +335,6 @@ struct Outgoing_Data
 	int emergency;
 };
 
-int status = 10;
-
 //Functions
 void setup_Communications(void);
 void call_iridium(int);
@@ -342,8 +342,8 @@ void send_message(int);
 void encode_message (struct Outgoing_Data *);
 void decode_message (struct Incoming_Data *);
 int convert_int (int data, float min, float step);
+long convert_double (double data, float min, float step);
 int convert_float (float data, float min, float step);
-int convert_double (double data, float min, float step);
 void encode_data (int data, int bit_offset, int bit_length);
 float decode_data (float min, float step, int offset, int bits);
 bool ISBDCallback(void);
@@ -351,4 +351,5 @@ void ISBDConsoleCallback(IridiumSBD *device, char c);
 void ISBDDiagsCallback(IridiumSBD *device, char c);
 
 
-#endif /* ifndef COMMUNICATIONS_H */
+#endif /* ifndef CONTROL_H */
+
