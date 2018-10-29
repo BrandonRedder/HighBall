@@ -1,38 +1,38 @@
 #include "Communications.h"
 
-//IridiumSBD modem(IridiumSerial, SLEEP_PIN, RING_PIN);
-//
-//void setup_Communications(void)
-//{
-//  // Set LED to output for display
-//  pinMode(13, OUTPUT);
-//
-//  // Start the serial ports
-//  IridiumSerial.begin(19200);
-//
-//  // Setup the Iridium modem
-//  modem.setPowerProfile(IridiumSBD::DEFAULT_POWER_PROFILE); // high current setting for battery power
-//  int start = modem.begin(); // start the modem
-//  int signalQuality = -1;
-//  int err = modem.getSignalQuality(signalQuality); // get signal quality
-//  if (start != ISBD_SUCCESS) {
-//	  if (status == 10) {
-//      WiredSerial.print("Start Iridium failed: error ");
-//      WiredSerial.println(start);
-//    }
-//  }
-//  if (err != ISBD_SUCCESS) {
-//	  if (status == 10) {
-//      WiredSerial.print("Get Signal quality failed: error ");
-//      WiredSerial.println(err);
-//	  }
-//  } else {
-//	  if (status == 10) {
-//      WiredSerial.print("Signal Quality: ");
-//      WiredSerial.println(signalQuality);
-//    }
-//  }  
-//}
+IridiumSBD modem(IridiumSerial, SLEEP_PIN, RING_PIN);
+
+void setup_Communications(void)
+{
+ // Set LED to output for display
+ pinMode(13, OUTPUT);
+
+ // Start the serial ports
+ IridiumSerial.begin(19200);
+
+ // Setup the Iridium modem
+ modem.setPowerProfile(IridiumSBD::DEFAULT_POWER_PROFILE); // high current setting for battery power
+ int start = modem.begin(); // start the modem
+ int signalQuality = -1;
+ int err = modem.getSignalQuality(signalQuality); // get signal quality
+ if (start != ISBD_SUCCESS) {
+	  if (Testing) {
+	     Serial.print("Start Iridium failed: error ");
+	     Serial.println(start);
+   }
+ }
+ if (err != ISBD_SUCCESS) {
+	  if (Testing) {
+	     Serial.print("Get Signal quality failed: error ");
+	     Serial.println(err);
+	  }
+ } else {
+	  if (Testing) {
+         Serial.print("Signal Quality: ");
+         Serial.println(signalQuality);
+   }
+ }  
+}
 
 
 // Set timer between messages and create message sent bit
@@ -45,66 +45,54 @@ bool fall_alert = false;
 bool emergency = false;
 
 // 30 Byte incoming and outgoing message buffer
-uint8_t buffer[30] = {62,129,145,22,26,130,12,53,2,2,75,3,32,200,50,12,131,32,200,80,167,128,250,3,232,15,163,129,64,0};;
+uint8_t buffer[30];
 
-// Call Iridium module from state machine 
-//void call_iridium(int status) {
-//  // Check if the modulel is asleep/ responds
-//  int err = modem.sleep();
-//  if (err != ISBD_SUCCESS && err != ISBD_IS_ASLEEP) {
-//	if (status == 10) {
-//    WiredSerial.print("Sleep failed: error ");
-//    WiredSerial.println(err);
-//    }
-//  }
-//  
-//  uint32_t t = millis();
-//  uint32_t dt = timer - t;
-//  if (emergency || dt > Message_Rate*1000 || !messageSent) {
-//    if (messageSent) {
-//      timer = millis();
-//      if (emergency) {
-//	      emergency = false;
-//      }
-//    }
-//    send_message(status);
-//  }
-//}
+//Call Iridium module from state machine 
+void call_iridium(int status) {
+ // Check if the modulel is asleep/ responds
+ int err = modem.sleep();
+ if (err != ISBD_SUCCESS && err != ISBD_IS_ASLEEP) {
+	if (Testing) {
+	   Serial.print("Sleep failed: error ");
+	   Serial.println(err);
+   }
+ }
+}
 
-//void send_message(int status) {
-//  size_t bufferSize = sizeof(buffer);
-//	
-//  int err;
-//  err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
-// 
-//  if (err != ISBD_SUCCESS)
-//  {
-//    messageSent = false;
-//    if (status == 10) {
-//      WiredSerial.print("Message failed to send");
-//      WiredSerial.println(err);
-//    }
-//  }
-//  else // success!
-//  {
-//    messageSent = true;
-//    if (status == 10) {
-//      WiredSerial.print("Inbound buffer size is ");
-//      WiredSerial.println(bufferSize);
-//      for (int i=0; i<bufferSize; ++i)
-//      {
-//        WiredSerial.print(buffer[i], HEX);
-//        if (isprint(buffer[i]))
-//        {
-//          WiredSerial.print("(");
-//          WiredSerial.write(buffer[i]);
-//          WiredSerial.print(")");
-//        }
-//        WiredSerial.print(" ");
-//      }
-//    }
-//  }
-//}
+void send_message(int status) {
+ size_t bufferSize = sizeof(buffer);
+	
+ int err;
+ err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
+
+ if (err != ISBD_SUCCESS)
+ {
+   messageSent = false;
+   if (Testing) {
+     Serial.print("Message failed to send");
+     Serial.println(err);
+   }
+ }
+ else // success!
+ {
+   messageSent = true;
+   if (Testing) {
+     Serial.print("Inbound buffer size is ");
+     Serial.println(bufferSize);
+     for (int i=0; i<bufferSize; ++i)
+     {
+       Serial.print(buffer[i], HEX);
+       if (isprint(buffer[i]))
+       {
+         Serial.print("(");
+         Serial.write(buffer[i]);
+         Serial.print(")");
+       }
+       Serial.print(" ");
+     }
+   }
+ }
+}
 
 
 void encode_message (struct Outgoing_Data *data) {
@@ -116,10 +104,7 @@ void encode_message (struct Outgoing_Data *data) {
   encode_data (new_pressure, PRS_OFFSET, PRS_BITS);
   // IMU Data
   int new_acc_magnitude = convert_float((*data).acc_magnitude, ACC_MAG_MIN, ACC_MAG_STEP);
-//  Serial.println("value");
-//  Serial.println(new_acc_magnitude);
   encode_data (new_acc_magnitude, ACC_MAG_OFFSET, ACC_MAG_BITS);
-//  delay(10000);
   int new_acc_theta = convert_float((*data).acc_theta, ACC_THETA_MIN, ACC_THETA_STEP);
   encode_data (new_acc_theta, ACC_THETA_OFFSET, ACC_THETA_BITS);
   int new_acc_phi = convert_float((*data).acc_phi, ACC_PHI_MIN, ACC_PHI_STEP);
@@ -171,15 +156,12 @@ void decode_message (struct Incoming_Data *data) {
   double lat1 = decode_data (0, 1, REC_LAT_MIN_OFFSET+10, REC_LAT_MIN_LENGTH-10);
   double lat2 = decode_data (0, 1, REC_LAT_MIN_OFFSET, 10);
   double lat_val = lat2*pow(2,REC_LONG_MIN_LENGTH-10) + lat1;
-  Serial.println("latitude");
-  Serial.println(lat1);
-  Serial.println(lat2);
   data->lat_deg_min = (lat_val*REC_LAT_MIN_STEP)+REC_LAT_MIN_MIN;
 
   data->long_deg = decode_data (REC_LONG_MIN, REC_LONG_STEP, REC_LONG_OFFSET, REC_LONG_LENGTH);
 
-  float long1 = decode_data (0, 1, REC_LONG_MIN_OFFSET+10, REC_LONG_MIN_LENGTH-10);
-  float long2 = decode_data (0, 1, REC_LONG_MIN_OFFSET, 10);
+  double long1 = decode_data (0, 1, REC_LONG_MIN_OFFSET+10, REC_LONG_MIN_LENGTH-10);
+  double long2 = decode_data (0, 1, REC_LONG_MIN_OFFSET, 10);
   double long_val = long2*pow(2,REC_LONG_MIN_LENGTH-10) + long1;
   data->long_deg_min = (long_val*REC_LONG_MIN_STEP)+REC_LONG_MIN_MIN;
   
@@ -281,25 +263,25 @@ float decode_data (float min, float step, int bit_offset, int bit_length) {
   return (float)(data*step)+min;
 }
 
-//bool ISBDCallback(void) // Called while waiting for retries during communications
-//{
-//   digitalWrite(13, HIGH);       // sets the digital pin 13 on
-//   delay(1000);                  // waits for 1 second
-//   digitalWrite(13, LOW);        // sets the digital pin 13 off
-//   delay(1000);                  // waits for 1 second
-//   return true;
-//}
+bool ISBDCallback(void) // Called while waiting for retries during communications
+{
+  digitalWrite(13, HIGH);       // sets the digital pin 13 on
+  delay(1000);                  // waits for 1 second
+  digitalWrite(13, LOW);        // sets the digital pin 13 off
+  delay(1000);                  // waits for 1 second
+  return true;
+}
 
-//#if DIAGNOSTICS
-//void ISBDConsoleCallback(IridiumSBD *device, char c)
-//{
-//  WiredSerial.write(c);
-//}
-//
-//void ISBDDiagsCallback(IridiumSBD *device, char c)
-//{
-//  WiredSerial.write(c);
-//}
-//#endif
+#if DIAGNOSTICS
+void ISBDConsoleCallback(IridiumSBD *device, char c)
+{
+ Serial.write(c);
+}
+
+void ISBDDiagsCallback(IridiumSBD *device, char c)
+{
+ Serial.write(c);
+}
+#endif
 
 

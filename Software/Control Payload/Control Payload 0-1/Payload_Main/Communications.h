@@ -4,10 +4,9 @@
 #include "IridiumSBD.h"
 #include "math.h"
 
-#define Testing true
-
 //Constants
 #define IridiumSerial Serial1
+#define WiredSerial Serial
 #define SLEEP_PIN 25
 #define RING_PIN 3
 #define DIAGNOSTICS true
@@ -127,7 +126,7 @@
 // rec_lat_degree
 #define REC_LAT_MIN 18
 #define REC_LAT_STEP 1
-#define REC_LAT_OFFSET 23
+#define REC_LAT_OFFSET 23 
 #define REC_LAT_LENGTH 5
 
 // rec_lat_deg_min
@@ -269,9 +268,9 @@ struct Incoming_Data
 	float altitude;
 	float altitude_buffer;
 	float lat_degree;
-	double lat_deg_min;
+	float lat_deg_min;
 	float long_deg;
-	double long_deg_min;
+	float long_deg_min;
 	// Cutdown
 	bool cutdown;
 	// Protocol
@@ -287,18 +286,17 @@ struct Incoming_Data
 	float length_vent;
 	float vent_inc;
 	float ballast_inc;
-    // Temperature Control
-    float temp_setpoint;
-    float temp_P;
-    float temp_I;
-    float temp_D;
-    // Control Mode
-    int control_mode;
+	// Temperature Control
+	float temp_setpoint;
+	float temp_P;
+	float temp_I;
+	float temp_D;
+	// Control Mode
+	int control_mode;
 	// Manual Control
 	bool manual_adjust;
 	bool manual_select;
 	int manual_amount;
-
 };
 
 struct Outgoing_Data
@@ -313,18 +311,18 @@ struct Outgoing_Data
 	float acc_phi;
 	// GPS Data
 	float altitude;
-	double latitude;
-	double longitude;
+	float latitude;
+	float longitude;
 	// Velovity Data
 	float vel_magnitude;
 	float vel_theta;
 	float vel_phi;
-    // Helium Data
-    int helium; 
+	// Helium Data
+	int helium;
 	// Ballast Data
 	int ballast;
-    // Battery Data
-    float BatteryPercentage;
+	// Battery Data
+	float BatteryPercentage;
 	// Time Data
 	int time;
 	// State Data
@@ -339,17 +337,16 @@ struct Outgoing_Data
 void setup_Communications(void);
 void call_iridium(int);
 void send_message(int);
-void encode_message (struct Outgoing_Data *);
-void decode_message (struct Incoming_Data *);
-int convert_int (int data, float min, float step);
-long convert_double (double data, float min, float step);
-int convert_float (float data, float min, float step);
-void encode_data (int data, int bit_offset, int bit_length);
-float decode_data (float min, float step, int offset, int bits);
+void encode_message (struct);
+void decode_message (struct);
+int convert_int (int, float, float);
+long convert_double (double, float, float);
+int convert_float (float, float, float);
+void encode_data (int, int, int);
+float decode_data (float, float, int, int);
 bool ISBDCallback(void);
-void ISBDConsoleCallback(IridiumSBD *device, char c);
-void ISBDDiagsCallback(IridiumSBD *device, char c);
+void ISBDConsoleCallback(IridiumSBD, char);
+void ISBDDiagsCallback(IridiumSBD, char);
 
 
-#endif /* ifndef CONTROL_H */
-
+#endif /* ifndef COMMUNICATIONS_H */
