@@ -70,10 +70,10 @@ class IMU {
 };
 // GPS
 struct GPS_Data {
-  float altitude;
-  float latitude;
-  float longitude;
-  int satellites;
+  double altitude;
+  double latitude;
+  double longitude;
+  uint32_t satellites;
 };
 
 class GPS {
@@ -90,19 +90,19 @@ class GPS {
     int get_reset();
     int get_int();
     GPS_Data get_data();
-    float get_alt();
-    float get_lat();
-    float get_long();
-    int get_sats();
+    double get_alt();
+    double get_lat();
+    double get_long();
+    uint32_t get_sats();
     void set_addr(int);
     void set_wake(int);
     void set_reset(int);
     void set_int(int);
     void set_data(GPS_Data);
-    void set_alt(float);
-    void set_lat(float);
-    void set_long(float);
-    void set_sats(int);
+    void set_alt(double);
+    void set_lat(double);
+    void set_long(double);
+    void set_sats(uint32_t);
 
   private:
     int addr;

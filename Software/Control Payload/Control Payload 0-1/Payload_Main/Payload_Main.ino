@@ -17,7 +17,7 @@
 //temperature_sensor temp;
 pressure_sensor pressure1(ADDRESS_HIGH);
 pressure_sensor pressure2(ADDRESS_LOW);
-//IMU imu;
+IMU imu;
 GPS gps;
 //altitude_control control;
 // Servo Setup
@@ -52,9 +52,9 @@ void setup()
   gps.create_GPS();
   Serial.println("After GPS");
 
-  /* Serial.println("Before IMU"); */
-  /* imu.initialize_IMU(); */
-  /* Serial.println("After IMU") */
+  Serial.println("Before IMU");
+  imu.initialize_IMU();
+  Serial.println("After IMU");
 
   helium_servo.attach(HELIUM_SERVO);
   ballast_servo.attach(BALLAST_SERVO);
@@ -92,10 +92,10 @@ void loop()
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
     Serial.println("Pressure Sensor Altitude = " + String(altitude));
 
-    //imu_data = imu.read_IMU();
-    //Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
-    //Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
-    //Serial.println("IMU Direction = " + String(imu_data.direction));
+    imu_data = imu.read_IMU();
+    Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
+    Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
+    Serial.println("IMU Direction = " + String(imu_data.direction));
 
     gps_data = gps.read_GPS();
     Serial.println("GPS Altitude = " + String(gps_data.altitude));
@@ -104,6 +104,7 @@ void loop()
     Serial.println("GPS satellites = " + String(gps_data.satellites));
     Serial.println("");
   }
+    
 
   //run control algorithm every 5 minutes
   if(((millis()-controlTime) >= 5*60*1000) && mode == AUTO){//should we make this a variable time?

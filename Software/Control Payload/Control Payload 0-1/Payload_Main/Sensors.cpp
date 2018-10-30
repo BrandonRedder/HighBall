@@ -163,7 +163,7 @@ int IMU::comms_Test() {
   Serial2.print('1');
   // check communication with IMU
   while((millis()-time) < 180000){
-    if(Serial2.read() == '1'){
+    if(Serial2.read() == '1'){//need to change back to '1'
       Serial2.print('0');
       return(1);
     }
@@ -183,13 +183,39 @@ IMU_Data IMU::read_IMU(){
   bool reading = false;
   String receivedValues = "";
   String delimiter = ",";
-  float numbers[3];
+  float numbers[3] = {0.0,0.0,0.0};
   int numIdx=0;
-  while(Serial2.available() > 0){
+  /*
+  int time = millis();
+  //Request Data
+  Serial2.print('2');
+  Serial.println("Inside read_IMU");
+  while((millis()-time) < 180000) {
+    if (Serial2.available() > 0) { 
+      Serial.println((char)Serial2.read());
+      /*if(Serial2.read() == '<') {
+        numbers[0] = Serial2.readStringUntil(',').toFloat();
+        numbers[1] = Serial2.readStringUntil(',').toFloat();
+        numbers[2] = Serial2.readStringUntil('>').toFloat();
+        set_Data(numbers[0], numbers[1], numbers[2]);
+        Serial2.print('0');
+        return(get_Data());
+      } else {
+        delay(500);
+      }
+    } else {
+      Serial2.print('2');
+    }
+  }*/
+
+
+  if(Serial2.available() > 0){
     int num = Serial2.read();
+    //Serial.println(num);
     if (reading == true){
-      if (num != '>'){
+      if ((char) num != '>'){
         //if new num(character) is not at the end, append string
+        Serial.println("This is num" + String(num));
         receivedValues += (char)num;
       }//end if end
       else{
@@ -198,10 +224,11 @@ IMU_Data IMU::read_IMU(){
       }//done reading
     }
     //check for start character
-    else if (num == '<'){
+    else if ((char) num == '<'){
       reading = true;
     }
   }
+  Serial.println("String of receivedValues" + receivedValues);
   int pos = 0;
   String token;
   while((pos = receivedValues.indexOf(delimiter)) != -1){
@@ -211,6 +238,7 @@ IMU_Data IMU::read_IMU(){
     receivedValues.remove(0,pos);
   }
   set_Data(numbers[0], numbers[1], numbers[2]);
+  
 }
 
 void IMU::set_Data(float accelU, float accelH, float dir){
@@ -226,7 +254,7 @@ IMU_Data IMU::get_Data(){
 void IMU::initialize_IMU() {
   Serial.println("Initializing IMU");
   int status = comms_Test();
-  if(status == '1'){
+  if(status == 1){
     Serial.println("IMU Communication Success");
   }
   else{
@@ -265,14 +293,19 @@ GPS_Data GPS::read_GPS() {
    *  GPS_Data: struct containing altitude, longitude, and latitude
    */
   digitalWrite(get_wake(), HIGH); // Wake GPS
-  delay(50);
+  delay(100);
 
-  while (!digitalRead(get_int())); // Wait for GPS to be ready
-
+  //while (!digitalRead(get_int())); // Wait for GPS to be ready
   while (myGPS.available()) { // available() returns # of new bytes that can be read
     GPS_Parser.encode(myGPS.read()); // Give data to parser
   }
-
+  /*if (GPS_Parser.location.isValid()){
+    Serial.println(String(GPS_Parser.altitude.feet()) + String(GPS_Parser.location.lat()) + String(GPS_Parser.location.lng()) + String(GPS_Parser.satellites.value()));
+  }
+  else{
+    Serial.println("Location not valid");
+    Serial.println(String(GPS_Parser.date.day()));
+  }*/
   set_alt(GPS_Parser.altitude.feet());
   set_lat(GPS_Parser.location.lat());
   set_long(GPS_Parser.location.lng());
@@ -325,13 +358,13 @@ int GPS::get_int() {return(interact);}
 
 GPS_Data GPS::get_data() {return(data);}
 
-float GPS::get_alt() {return(data.altitude);}
+double GPS::get_alt() {return(data.altitude);}
 
-float GPS::get_lat() {return(data.latitude);}
+double GPS::get_lat() {return(data.latitude);}
 
-float GPS::get_long() {return(data.longitude);}
+double GPS::get_long() {return(data.longitude);}
 
-int GPS::get_sats() {return(data.satellites);}
+uint32_t GPS::get_sats() {return(data.satellites);}
 
 // set functions
 void GPS::set_addr(int _addr) {
@@ -354,19 +387,19 @@ void GPS::set_data(GPS_Data _data) {
   data = _data;
 }
 
-void GPS::set_alt(float _alt) {
+void GPS::set_alt(double _alt) {
   data.altitude = _alt;
 }
 
-void GPS::set_lat(float _lat) {
+void GPS::set_lat(double _lat) {
   data.latitude = _lat;
 }
 
-void GPS::set_long(float _long) {
+void GPS::set_long(double _long) {
   data.longitude = _long;
 }
 
-void GPS::set_sats(int _sats) {
+void GPS::set_sats(uint32_t _sats) {
   data.satellites = _sats;
 }
 
