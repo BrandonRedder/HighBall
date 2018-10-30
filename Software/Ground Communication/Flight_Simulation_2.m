@@ -37,9 +37,6 @@ P0 = double(interpn(alts, Pressures, alt, 'makima'));
 T0 = double(interpn(x1, x2, x3, x4, tmp, lat0, long0, P0, t0));
 RH0 = double(interpn(x1, x2, x3, x4, rh, lat0, long0, P0, t0))/100;
 
-% Spatial Vector
-x = [0;0];
-
 % Initial Conditions
 
 % Payload
@@ -71,10 +68,11 @@ Fd = .5*Cd*pa*Vi^2*area; % drag force
 
 % Kinematic Values
 Mvirt = (Mhel+Msys+Mcon+Mbal) + .37*Vol*pa; % virtual mass includes displaaced air
-Acc = (Fb-Fg-Fd)/Mvirt; % acceleration 
+A = (Fb-Fg-Fd)/Mvirt; % acceleration
+Vf = 0; % final velocity
+Dz = 0; % displacement in z
 Dx = 0; % displacement in x
 Dy = 0; % displacement in y
-
 % counters
 count = 0;
 hcount = 0;
@@ -93,7 +91,7 @@ while Bal > 0 && count < 2000 && P0 < 950
     bcount = bcount + 1;
     
     t = t + dt/3600; % set new time
-    Dz = Vi*dt + .5*Acc*dt^2; % displacement over last interval
+    Dz = Vi*dt + .5*A*dt^2; % displacement over last interval
     alt = alt + Dz;
     % Convert from meters to latitude and longitude degrees
     % doesn't account for altitude, but less than 0.5% error
@@ -156,14 +154,14 @@ while Bal > 0 && count < 2000 && P0 < 950
         Fb = 0;
     end
     
-    data_plot(:,count) = [alt, P0, Dx, Dy, Dz, Vf, Acc, Fb, Fg, Fd, lat0, long0, Vol, r, T];
+    data_plot(:,count) = [alt, P0, Dx, Dy, Dz, Vf, A, Fb, Fg, Fd, lat0, long0, Vol, r, T];
     
     if Vi > 0
-        Acc = (Fb-Fg-Fd)/Mvirt; % acceleration
+        A = (Fb-Fg-Fd)/Mvirt; % acceleration
     else
-        Acc = (Fb-Fg+Fd)/Mvirt;
+        A = (Fb-Fg+Fd)/Mvirt;
     end
-    Vf = Vi + Acc*dt; % new final velocity
+    Vf = Vi + A*dt; % new final velocity
     Vi= Vf;
 
     if r > (8.63/2) % based on 11 foot burst diameter

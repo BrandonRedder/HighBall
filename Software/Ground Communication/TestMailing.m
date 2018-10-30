@@ -24,7 +24,7 @@ A = EncodeMessage(Data);
 temp = datetime('now','TimeZone','local');
 date = datestr(temp, 'yy-MM-dd_HH-mm-ss');
 FID = fopen([date,'data.sbd'], 'w+');
-fwrite(FID, A, 'ubit1');
+fwrite(FID, A);
 fclose('all');
 
 % Send email with sbd Attachment
@@ -40,7 +40,7 @@ while tries < 10 && ~recieved
     pause(1)
     mails = ReadOutlook(...
     'Folder', 'Senior Design SBD',...
-    'Savepath', '\Incoming',...
+    'Savepath', 'C:\Users\Kyle\Documents\Classes\Senior Design\Incoming',...
     'Read',1 , ...
     'Mark',1);
     tries = tries + 1;
