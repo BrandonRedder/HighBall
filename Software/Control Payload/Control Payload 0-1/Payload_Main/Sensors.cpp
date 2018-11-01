@@ -163,11 +163,21 @@ int IMU::comms_Test() {
    * -------
    *  int - 1 corresponds to sucess, 0 corresponds to failure
    */
-  int time = millis();
+  //int time = millis();
   //Serial2.begin(9600);
-  Serial2.print('1');
+  Serial2.print("#c");
   // check communication with IMU
-  while((millis()-time) < 180000){
+  boolean found_CommsHeader = finder.find("C");
+
+  if (found_CommsHeader) {
+    float testVal = finder.getFloat();
+    if (testVal == 2.0) {
+      return(1);
+    }
+  }
+
+  return(0);
+  /*while((millis()-time) < 180000){
     if(Serial2.read() == '1'){//need to change back to '1'
       Serial2.print('0');
       return(1);
@@ -176,6 +186,7 @@ int IMU::comms_Test() {
     delay(500);
   }
   return(0);
+  */
 }
 
 IMU_Data IMU::read_IMU(){
@@ -279,7 +290,6 @@ void IMU::initialize_IMU() {
   else{
     Serial.println("FAILED! IMU Communications.");
   }
-  Serial2.write("#ot#o0#oe0");
   Serial2.flush();
 }
 

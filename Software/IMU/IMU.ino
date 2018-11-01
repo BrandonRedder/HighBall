@@ -10,6 +10,9 @@ float zAcceleration;
 float horizontalAcceleration;
 float direction;
 
+boolean output_single_on = false;
+boolean output_comms_test = false;
+
 void setup()
 {
   SerialUSB.begin(115200); //set baud rate
@@ -49,18 +52,28 @@ void setup()
 
 void loop()
 {
-  char comm;
-  if(Serial.available() > 0){
+  // Can add comms test code as an additional command here
+  if (Serial.available() >= 2) {
+    if (Serial.read() == "#") { // Start of control message
+      int command = Serial.read(); // read command
+      if (command == 'f') { // Request Data
+        output_single_on = true;
+      } else if (command == 'c') { // Reply to Comms test
+        output_comms_test = true;
+      }
+    }
+  }
+  /*if(Serial.available() > 0){
     comm = Serial.read();
     if(comm == '1'){
       Serial.print('2');//may change back to '1'
     }
     else if (comm == '0') {
       Serial.print('0');
-    } /*else if (comm == '2') {
+    } else if (comm == '2') {
       exportValues(zAcceleration, horizontalAcceleration, direction);
-    }*/
-  }
+    }
+  } */
   //IMU_OUTPUT updateValues;
   if ( imu.fifoAvailable() )//if there is new data
   {
@@ -73,7 +86,13 @@ void loop()
       calculateValues();
       }
   }
-  return;// updateValues;
+
+  if (output_single_on) exportValues(); // send if data is requested
+  if (output_comms_test) commsReply();
+
+  outut_single_on = false;
+  output_comms_test = false;
+  return;
   
 }
 
@@ -152,7 +171,7 @@ void calculateValues(){
   }
 
   horizontalAcceleration = sqrt(xAcceleration * xAcceleration + yAcceleration * yAcceleration);
-  exportValues(zAcceleration, horizontalAcceleration, direction);
+  //exportValues(zAcceleration, horizontalAcceleration, direction);
 
   SerialUSB.println("Q:" + String(imu.calcQuat(imu.qw),4) + ", " + String(imu.calcQuat(imu.qx),4) + ", " + String(imu.calcQuat(imu.qy),4) + ", " + String(imu.calcQuat(imu.qz), 4));
   SerialUSB.println("Accel:" + String(-1*imu.calcAccel(imu.ay)) + ", " + String(-1*imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.az)));
@@ -168,7 +187,15 @@ void calculateValues(){
 
 void exportValues(float Vaccel, float Haccel, float dir){
   //Serial.print("<");
-  Serial.print("<" + String(Vaccel) + "," + String(Haccel) + "," + String(dir) + ">"); 
+  Serial.print("H ");
+  Serial.print(Vaccel); Serial.print(",");
+  Serial.print(Haccel); Serial.print(",");
+  Serial.print(dir); Serial.println();
+}
+
+void commsReply() {
+  Serial.print("C ");
+  Serial.print(2.0);
 }
 /*
 void printTest(){
