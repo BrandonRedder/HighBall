@@ -4,6 +4,7 @@
 #include "Sensors.h"
 #include <stdlib.h>
 #include <string.h>
+#include <TextFiner.h>
 
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
@@ -151,6 +152,10 @@ IMU::IMU(){
   set_Data(0, 0, 0);
 }
 
+TextFinder finder(Serial2);
+const int numOfFields = 3;
+float Array[numOfFields];
+
 int IMU::comms_Test() {
   /* Check communication between the IMU arduino and the main arduino
    *
@@ -159,7 +164,7 @@ int IMU::comms_Test() {
    *  int - 1 corresponds to sucess, 0 corresponds to failure
    */
   int time = millis();
-  Serial2.begin(9600);
+  //Serial2.begin(9600);
   Serial2.print('1');
   // check communication with IMU
   while((millis()-time) < 180000){
@@ -180,18 +185,31 @@ IMU_Data IMU::read_IMU(){
    * -------
    *  IMU_Data - data corresponding to the current values on the IMU
    */
-  bool reading = false;
-  String receivedValues = "";
-  String delimiter = ",";
-  float numbers[3] = {0.0,0.0,0.0};
-  int numIdx=0;
+  Serial2.write("#f"); //request Data
+  int fieldIndex = 0;
+  boolean found_HeaderChar = finder.find("H");
+
+  if(found_HeaderChar){
+    while(fieldIndex < numOfFields){
+      Array[fieldIndex++] = finder.getFloat();
+    }
+    set_Data(Array[0], Array[1], Array[2]);
+    Serial.println("IMU Received Data");
+    Serial.println(String(Array[0]) + ', ' +  String(Array[1]) + ', ' + String(Array[2]);
+  }
+
+  //bool reading = false;
+  //String receivedValues = "";
+  //String delimiter = ",";
+  //float numbers[3] = {0.0,0.0,0.0};
+  //int numIdx=0;
   /*
   int time = millis();
   //Request Data
   Serial2.print('2');
   Serial.println("Inside read_IMU");
   while((millis()-time) < 180000) {
-    if (Serial2.available() > 0) { 
+    if (Serial2.available() > 0) {
       Serial.println((char)Serial2.read());
       /*if(Serial2.read() == '<') {
         numbers[0] = Serial2.readStringUntil(',').toFloat();
@@ -208,7 +226,7 @@ IMU_Data IMU::read_IMU(){
     }
   }*/
 
-
+/*
   if(Serial2.available() > 0){
     int num = Serial2.read();
     //Serial.println(num);
@@ -238,7 +256,7 @@ IMU_Data IMU::read_IMU(){
     receivedValues.remove(0,pos);
   }
   set_Data(numbers[0], numbers[1], numbers[2]);
-  
+*/
 }
 
 void IMU::set_Data(float accelU, float accelH, float dir){
@@ -253,6 +271,7 @@ IMU_Data IMU::get_Data(){
 
 void IMU::initialize_IMU() {
   Serial.println("Initializing IMU");
+  Serial2.begin(9600);
   int status = comms_Test();
   if(status == 1){
     Serial.println("IMU Communication Success");
@@ -260,6 +279,8 @@ void IMU::initialize_IMU() {
   else{
     Serial.println("FAILED! IMU Communications.");
   }
+  Serial2.write("#ot#o0#oe0");
+  Serial2.flush();
 }
 
 // }}}
