@@ -54,7 +54,7 @@ void loop()
 {
   // Can add comms test code as an additional command here
   if (Serial.available() >= 2) {
-    if (Serial.read() == "#") { // Start of control message
+    if (Serial.read() == '#') { // Start of control message
       int command = Serial.read(); // read command
       if (command == 'f') { // Request Data
         output_single_on = true;
@@ -87,10 +87,10 @@ void loop()
       }
   }
 
-  if (output_single_on) exportValues(); // send if data is requested
+  if (output_single_on) exportValues(zAcceleration, horizontalAcceleration, direction); // send if data is requested
   if (output_comms_test) commsReply();
 
-  outut_single_on = false;
+  output_single_on = false;
   output_comms_test = false;
   return;
   

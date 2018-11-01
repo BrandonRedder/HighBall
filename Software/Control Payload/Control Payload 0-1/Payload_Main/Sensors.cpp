@@ -4,7 +4,7 @@
 #include "Sensors.h"
 #include <stdlib.h>
 #include <string.h>
-#include <TextFiner.h>
+#include <TextFinder.h>
 
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
@@ -206,7 +206,7 @@ IMU_Data IMU::read_IMU(){
     }
     set_Data(Array[0], Array[1], Array[2]);
     Serial.println("IMU Received Data");
-    Serial.println(String(Array[0]) + ', ' +  String(Array[1]) + ', ' + String(Array[2]);
+    Serial.println(String(Array[0]) + ", " +  String(Array[1]) + ", " + String(Array[2]));
   }
 
   //bool reading = false;
@@ -283,6 +283,7 @@ IMU_Data IMU::get_Data(){
 void IMU::initialize_IMU() {
   Serial.println("Initializing IMU");
   Serial2.begin(9600);
+  Serial2.flush();
   int status = comms_Test();
   if(status == 1){
     Serial.println("IMU Communication Success");

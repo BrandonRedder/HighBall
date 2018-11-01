@@ -1,5 +1,5 @@
 #include "Communications.h"
-
+/*
 IridiumSBD modem(IridiumSerial, SLEEP_PIN, RING_PIN);
 
 void setup_Communications(void)
@@ -282,6 +282,6 @@ void ISBDDiagsCallback(IridiumSBD *device, char c)
 {
  Serial.write(c);
 }
+
 #endif
-
-
+*/

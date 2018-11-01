@@ -1,6 +1,6 @@
 #ifndef COMMUNICATIONS_H
 #define COMMUNICATIONS_H
-
+/*
 #include "IridiumSBD.h"
 #include "math.h"
 
@@ -348,5 +348,5 @@ bool ISBDCallback(void);
 void ISBDConsoleCallback(IridiumSBD, char);
 void ISBDDiagsCallback(IridiumSBD, char);
 
-
+*/
 #endif /* ifndef COMMUNICATIONS_H */
