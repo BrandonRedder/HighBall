@@ -1,7 +1,7 @@
-function [] = Flight_Simulation_2(varargin)
+function [] = Flight_Simulation(varargin)
 % Flight Time Simulator
 % Balloon modeled as perfect sphere for simplicity
-
+tic
 load('GridData.mat')
 
 d0 = datetime('2018-07-09 00:00:00', 'InputFormat', 'yyyy-MM-dd HH:mm:ss') - init_time;
@@ -16,7 +16,7 @@ else
     alt = 1000; % starting altitude in meters
     lat0 = 33.753746; % starting latitude
     long0 = -84.386330; %starting longitude
-    t0 = hours(d0); %initial time in hours
+    t0 = hours(d0)+5; %initial time in hours
 end
 x1 = init_lat:fin_lat;
 x2 = init_long:fin_long;
@@ -32,10 +32,11 @@ alts = double(interpn(x1, x2, x3, x4, hgt, lat0, long0, Pressures, t0, 'makima')
 alts = reshape(alts, 1, []);
 
 % linear interpolation of pressures to match altitude
-P0 = double(interpn(alts, Pressures, alt, 'makima'));
+Pressure0 = double(interpn(alts, Pressures, alt, 'makima'));
+Pressure = Pressure0;
 %surface temperature inpertoplation
-T0 = double(interpn(x1, x2, x3, x4, tmp, lat0, long0, P0, t0));
-RH0 = double(interpn(x1, x2, x3, x4, rh, lat0, long0, P0, t0))/100;
+T0 = double(interpn(x1, x2, x3, x4, tmp, lat0, long0, Pressure0, t0));
+RH0 = double(interpn(x1, x2, x3, x4, rh, lat0, long0, Pressure0, t0))/100;
 
 % Initial Conditions
 
@@ -47,14 +48,14 @@ Bal = 1; % starting mass of ballast in kg
 MinBal = .6e-3; % ballast drop mass in kg
 MinHel = .01; % mass of vented helium in kg
 
-t = 5; % elapsed time in hours initial
-dt = .5; % time step is in seconds
+t = t0; % elapsed time in hours initial
+dt = .01; % time step is in seconds
 
 Psat = 6.1078*10^((7.5*(T0-273.15))/(T0-273.15+237.3)); % vapor pressure in mb
 Pv = RH0*Psat;
-Pd = P0-Pv;
+Pd = Pressure0-Pv;
 pa = ((Pd*100)*MolA+(Pv*100)*MolV)/(R*T0); % density of air
-ph = ((P0*100*MolH)/(R*T0)); % density of helium
+ph = ((Pressure0*100*MolH)/(R*T0)); % density of helium
 
 Vol = 5.5; % cubic meters
 Mhel = ph*Vol; % calculated helium volume
@@ -81,14 +82,27 @@ bcount = 0;
 up = false;
 burst = false;
 % save data
-data_plot = zeros(15,2000);
+data_plot = zeros(15,30000);
 t_burst = 0;
-while Bal > 0 && count < 2000 && P0 < 950
+while Bal > 0 && count < 30000 && Pressure < 950
  
     count = count + 1;
 
     hcount = hcount + 1;
     bcount = bcount + 1;
+    
+    % Saturate Acceleration and Velocity
+    if A > 10
+        A = 10;
+    elseif A < -10
+        A = -10;
+    end
+    
+    if Vi > 20
+        Vi = 20;
+    elseif Vi < -20
+        Vi = -20;
+    end
     
     t = t + dt/3600; % set new time
     Dz = Vi*dt + .5*A*dt^2; % displacement over last interval
@@ -110,7 +124,7 @@ while Bal > 0 && count < 2000 && P0 < 950
     temp2 = mask2(x2>=long0);
     s_long = (temp2(1)-2):(temp2(1)+2);
     
-    temp3 = mask3(x3>=P0);
+    temp3 = mask3(x3>=Pressure);
     prs = (temp3(end)-2):(temp3(end)+2);
     
     temp4 = mask4(x4>=t);
@@ -119,24 +133,24 @@ while Bal > 0 && count < 2000 && P0 < 950
     alts = reshape((double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), hgt(s_lat, s_long, prs, s_t), lat0, long0, x3(prs), t0+t, 'makima'))*dt),1,[]);
     
     % linear interpolation of pressures to match altitude exactly
-    P0 = double(interpn(alts, x3(prs), alt, 'makima'));    
+    Pressure = double(interpn(alts, x3(prs), alt, 'makima', Pressure0));    
 
-    Dx = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), ugrd(s_lat, s_long, prs, s_t), lat0, long0, P0, t0+t, 'makima'))*dt;
-    Dy = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), vgrd(s_lat, s_long, prs, s_t), lat0, long0, P0, t0+t, 'makima'))*dt;
+    Dx = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), ugrd(s_lat, s_long, prs, s_t), lat0, long0, Pressure, t0+t, 'makima'))*dt;
+    Dy = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), vgrd(s_lat, s_long, prs, s_t), lat0, long0, Pressure, t0+t, 'makima'))*dt;
     
-    T = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), tmp(s_lat, s_long, prs, s_t), lat0, long0, P0, t0+t, 'makima')); % Temperature
+    T = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), tmp(s_lat, s_long, prs, s_t), lat0, long0, Pressure, t0+t, 'makima', T0)); % Temperature
     
     if T < 200
         error('Temp out of range')
     end
     
-    RH = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), rh(s_lat, s_long, prs, s_t), lat0, long0, P0, t0+t, 'makima'))/100; % Relative humidity
+    RH = double(interpn(x1(s_lat), x2(s_long), x3(prs), x4(s_t), rh(s_lat, s_long, prs, s_t), lat0, long0, Pressure, t0+t, 'makima', RH0))/100; % Relative humidity
     
     Psat = 6.1078*10^((7.5*(T-273.15))/(T-273.15+237.3)); % saturation vapor pressure in mb
     Pv = RH*Psat; % partial pressure of vapor
-    Pd = P0-Pv; % partial pressure of dry air
+    Pd = Pressure-Pv; % partial pressure of dry air
     pa = ((Pd*100)*MolA+(Pv*100)*MolV)/(R*T); % density of air
-    ph = ((P0*101)*MolH)/(R*T); % density of helium
+    ph = ((Pressure*101)*MolH)/(R*T); % density of helium
     
     if ~burst
         Vol = .99*(Mhel/ph); % volume of balloon
@@ -154,7 +168,7 @@ while Bal > 0 && count < 2000 && P0 < 950
         Fb = 0;
     end
     
-    data_plot(:,count) = [alt, P0, Dx, Dy, Dz, Vf, A, Fb, Fg, Fd, lat0, long0, Vol, r, T];
+    data_plot(:,count) = [alt, Pressure, Dx, Dy, Dz, Vf, A, Fb, Fg, Fd, lat0, long0, Vol, r, T];
     
     if Vi > 0
         A = (Fb-Fg-Fd)/Mvirt; % acceleration
@@ -185,49 +199,49 @@ while Bal > 0 && count < 2000 && P0 < 950
 %     end
 end
 % 3D scatter plot of relative position during flight
-h = figure;
-ax = axes;
-scatter3(ax, data_plot(11,1:count-1), data_plot(12,1:count-1), data_plot(1,1:count-1),10,'filled')
-xlabel('Latitude');
-ylabel('Longitude');
-zlabel('Altitude');
-axis tight manual % this ensures that getframe() returns a consistent size
-filename = 'testAnimated.gif';
-x = 33.59;
-y = -84.45;
-z = 24631.57;
-for var = 0:(pi/50):pi
-    % Capture the plot as an image
-    [theta,rho,p] = cart2pol(x,y,z);
-    [x,y,z] = pol2cart(theta+var,rho,p);
-    campos(ax, [x,y,z])
-    drawnow
-    frame = getframe(h);
-    im = frame2im(frame);
-    [imind,cm] = rgb2ind(im,256);
-    % Write to the GIF File
-    if theta == 0
-        imwrite(imind,cm,filename,'gif', 'Loopcount',inf);
-    else
-        imwrite(imind,cm,filename,'gif','WriteMode','append');
-    end
-end
+% h = figure;
+% ax = axes;
+% scatter3(ax, data_plot(11,1:count-1), data_plot(12,1:count-1), data_plot(1,1:count-1),10,'filled')
+% xlabel('Latitude');
+% ylabel('Longitude');
+% zlabel('Altitude');
+% axis tight manual % this ensures that getframe() returns a consistent size
+% filename = 'testAnimated.gif';
+% x = 33.59;
+% y = -84.45;
+% z = 24631.57;
+% for var = 0:(pi/50):pi
+%     % Capture the plot as an image
+%     [theta,rho,p] = cart2pol(x,y,z);
+%     [x,y,z] = pol2cart(theta+var,rho,p);
+%     campos(ax, [x,y,z])
+%     drawnow
+%     frame = getframe(h);
+%     im = frame2im(frame);
+%     [imind,cm] = rgb2ind(im,256);
+%     % Write to the GIF File
+%     if theta == 0
+%         imwrite(imind,cm,filename,'gif89a', 'Loopcount',inf);
+%     else
+%         imwrite(imind,cm,filename,'gif89a','WriteMode','append');
+%     end
+% end
+fprintf('Flight time is %f minutes', (t-t0)*60) 
 
-% figure('Name','Altitude')
-% plot(data_plot(1,1:count))
-% figure('Name','Pressure')
-% plot(data_plot(2,1:count))
-% figure('Name','Velocity')
-% plot(data_plot(6,1:count))
-% figure('Name','Acceleration')
-% plot(data_plot(7,1:count))
-% figure('Name','Temperature')
-% plot(data_plot(15,1:count))
-% figure('Name','Change Latitude')
-% plot(data_plot(11,1:count))
-% figure('Name','Change Longitude')
-% plot(data_plot(12,1:count))
-
+figure('Name','Altitude')
+plot(data_plot(1,1:count))
+figure('Name','Pressure')
+plot(data_plot(2,1:count))
+figure('Name','Velocity')
+plot(data_plot(6,1:count))
+figure('Name','Acceleration')
+plot(data_plot(7,1:count))
+figure('Name','Temperature')
+plot(data_plot(15,1:count))
+figure('Name','Change Latitude')
+plot(data_plot(11,1:count))
+figure('Name','Change Longitude')
+plot(data_plot(12,1:count))
 toc
 end
 
