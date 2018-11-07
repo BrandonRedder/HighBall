@@ -165,16 +165,20 @@ int IMU::comms_Test() {
    */
   //int time = millis();
   //Serial2.begin(9600);
+  Serial.println("In Communication Test");
   Serial2.print("#c");
   // check communication with IMU
   boolean found_CommsHeader = finder.find("C");
 
   if (found_CommsHeader) {
+    Serial.println("Found Communication Header");
     float testVal = finder.getFloat();
     if (testVal == 2.0) {
       return(1);
     }
   }
+
+  Serial.println("Did not Find Communication Header");
 
   return(0);
   /*while((millis()-time) < 180000){

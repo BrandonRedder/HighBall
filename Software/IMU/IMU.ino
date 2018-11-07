@@ -186,16 +186,15 @@ void calculateValues(){
 }
 
 void exportValues(float Vaccel, float Haccel, float dir){
-  //Serial.print("<");
   Serial.print("H ");
-  Serial.print(Vaccel); Serial.print(",");
-  Serial.print(Haccel); Serial.print(",");
-  Serial.print(dir); Serial.println();
+  Serial.print(String(Vaccel)); Serial.print(",");
+  Serial.print(String(Haccel)); Serial.print(",");
+  Serial.print(String(dir)); Serial.println();
 }
 
 void commsReply() {
   Serial.print("C ");
-  Serial.print(2.0);
+  Serial.print("2.0");
 }
 /*
 void printTest(){
