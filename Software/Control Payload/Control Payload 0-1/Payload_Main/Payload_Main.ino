@@ -13,6 +13,7 @@
 #define HELIUM_SERVO 7
 #define BALLAST_SERVO 6
 
+#define d2r (M_PI / 180.0)
 
 //temperature_sensor temp;
 pressure_sensor pressure1(ADDRESS_HIGH);
@@ -39,8 +40,12 @@ float velocity;
 IMU_Data imu_data;
 GPS_Data gps_data;
 
+double initial_lat;     
+double initial_long;
+
 void setup()
 {
+  pinMode(5,OUTPUT);  
   Serial.begin(9600);
   
   Serial.println("Before Pressure");
@@ -62,6 +67,10 @@ void setup()
   controlTime = millis();
   conditionTime = controlTime;
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
+  
+  gps_data = gps.read_GPS();         
+  initial_lat = gps.get_lat();    
+  initial_long = gps.get_long();
 
 }
 
@@ -154,4 +163,22 @@ void release_ballast(int n) {
       delay(1350);
     }
   }
+}
+void auto_cutdown(double initial_lat, double initial_long, double lat2, double long2)
+{
+    float dlong = (long2 - initial_long) * d2r;
+    float dlat = (lat2 - initial_lat) * d2r;
+    float a = pow(sin(dlat/2.0), 2) + cos(initial_lat*d2r) * cos(lat2*d2r) * pow(sin(dlong/2.0), 2);
+    float c = 2 * atan2(sqrt(a), sqrt(1-a));
+    float d = 3956 * c; 
+if(d>100.0)        //cutdown if distance is greater than 100.0 miles
+{
+  cut_down();
+}
+    
+}
+void cut_down(){
+  digitalWrite(5,HIGH);
+  delay(10000);
+  digitalWrite(5,LOW);
 }
