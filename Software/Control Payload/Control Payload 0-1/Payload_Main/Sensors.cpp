@@ -381,6 +381,9 @@ void GPS::initialize_GPS() {
     } // end if
   } // end while
   Serial.println("GPS Initialized");
+  
+  String configString = myGPS.createMTKpacket(886, ",3");    //balloon mode
+  myGPS.sendMTKpacket(configString);
 }
 
 // get functions
