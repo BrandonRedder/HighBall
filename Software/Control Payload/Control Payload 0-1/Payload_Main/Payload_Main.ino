@@ -42,7 +42,7 @@ GPS_Data gps_data;
 void setup()
 {
   Serial.begin(9600);
-/*
+  
   Serial.println("Before Pressure");
   pressure1.initialize_sensor();
   pressure2.initialize_sensor();
@@ -51,18 +51,18 @@ void setup()
   Serial.println("Before GPS");
   gps.create_GPS();
   Serial.println("After GPS");
-*/
+
   Serial.println("Before IMU");
   imu.initialize_IMU();
   Serial.println("After IMU");
-/*
+
   helium_servo.attach(HELIUM_SERVO);
   ballast_servo.attach(BALLAST_SERVO);
 
   controlTime = millis();
   conditionTime = controlTime;
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
-  */
+
 }
 
 #define NO_ACTION 0
@@ -82,7 +82,7 @@ void loop()
 
   if((millis() - conditionTime)/1000 >= 5){//should we make this a variable time?
     //temperature = temp.read_temp();
-    /*
+
     altitude1 = pressure1.find_altitude();
     altitude2 = pressure2.find_altitude();
     Serial.println("");
@@ -93,19 +93,19 @@ void loop()
     conditionTime = millis();
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
     Serial.println("Pressure Sensor Altitude = " + String(altitude));
-*/
+
     imu_data = imu.read_IMU();
     Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
     Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
     Serial.println("IMU Direction = " + String(imu_data.direction));
-/*
+
     gps_data = gps.read_GPS();
     Serial.println("GPS Altitude = " + String(gps_data.altitude));
     Serial.println("GPS latitude = " + String(gps_data.latitude));
     Serial.println("GPS longitude = " + String(gps_data.longitude));
     Serial.println("GPS satellites = " + String(gps_data.satellites));
     Serial.println("");
-    */
+
   }
     
 
