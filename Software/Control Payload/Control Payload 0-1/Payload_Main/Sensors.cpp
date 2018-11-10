@@ -448,13 +448,14 @@ void GPS::set_sats(uint32_t _sats) {
 #define Battery_Divider 1.15385
 #define Battery_Max 12.6
 #define Battery_Min 8.25
-
+/*
 float check_battery(void)
 {
-  /* Measurement of the battery health */
+  // Measurement of the battery health
   float Battery_Measurement = 5 * ((float)analogRead(Battery))/1024;
   // TODOC: This equation is not obvious at first glance, provide some
   // explanation about what is doing.
   return(100 * (Battery_Divider * Battery_Measurement - Battery_Min) /
          (Battery_Max - Battery_Min));
 }
+*/

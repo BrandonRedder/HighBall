@@ -100,6 +100,10 @@ void loop()
     Serial.println("");
     Serial.println("Pressure Sensor Altitude 1 = " + String(altitude1));
     Serial.println("Presure Sensor Altitude 2 = " + String(altitude2));
+    Serial.println("Pressure Sensor Pressure 1 = " + String(pressure1.read_pressure()));
+    Serial.println("Pressure Sensor Baseline 1 = " + String(pressure1.get_baseline()));
+    Serial.println("Pressure Sensor Pressure 2 = " + String(pressure2.read_pressure()));
+    Serial.println("Pressure Sensor Baseline 2 = " + String(pressure2.get_baseline()));
     velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
     Serial.println("Pressure Sensor Velocity = " + String(velocity));
     conditionTime = millis();
