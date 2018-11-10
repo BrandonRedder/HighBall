@@ -2,71 +2,67 @@
 #include "Actuators.h"
 
 Servo HeliumServo;
-Servo BallastServo;
-
-unsigned long HeliumStartTime;
-bool HeliumOpen = false;
+#define BallastPin 6
 
 void setup_Actuators(void) {
   HeliumServo.attach(7);
   HeliumServo.write(HeliumStartAngle);
-  BallastServo.attach(6);
-  BallastServo.write(BallastStartAngle);
+  pinMode(BallastPin, OUTPUT);
 }
 
 // Open helium vent by given percentage (0-1) for a given time period
-int openHeliumServo (float percentOpen) {
+void openHeliumServo (struct Helium_Data* data, float percentOpen) {
+  data->position = percentOpen;
   double degree;
-  if (!HeliumOpen) {
-    HeliumOpen = true;
-    HeliumStartTime = millis();
+  if (!data->open) {
+    data->open = true;
   }
-  percentOpen = percentOpen*2;
+  percentOpen = percentOpen * 2;
   if (percentOpen <= 1) {
-    degree = 180*acos(percentOpen)/PI;
+    degree = 180 * acos(percentOpen) / PI;
   } else {
-    degree = 180*acos(percentOpen-1)/PI+90;
+    degree = 180 * acos(percentOpen - 1) / PI + 90;
   }
-  HeliumServo.write(HeliumStartAngle+degree);
-  return (millis() - HeliumStartTime);
+  HeliumServo.write(HeliumStartAngle + degree);
 }
 
-void closeHeliumServo (void) {
+void closeHeliumServo (struct Helium_Data* data) {
+  data->position = 0;
   HeliumServo.write(HeliumStartAngle);
-  HeliumOpen = false;
-  HeliumStartTime = 0;
+  data->open = false;
+  data->ventTime = millis();
 }
 
-int oscillateHeliumServo (int period, int repetitions, int degree) {
-  if (!HeliumOpen) {
-    for(int i; i < repetitions; i++) {
-      HeliumServo.write(HeliumStartAngle+degree);
+void oscillateHeliumServo (struct Helium_Data* data, int period, int repetitions, int degree) {
+  if (!data->open) {
+    for (int i; i < repetitions; i++) {
+      HeliumServo.write(HeliumStartAngle + degree);
       delay(period);
       HeliumServo.write(HeliumStartAngle);
     }
-    return 1;
   } else {
-    return -1;
+    float start_position = data->position;
+    HeliumServo.write(HeliumStartAngle);
+    for (int i; i < repetitions; i++) {
+      HeliumServo.write(HeliumStartAngle + degree);
+      delay(period);
+      HeliumServo.write(HeliumStartAngle);
+    }
+    openHeliumServo ( data, start_position);
   }
 }
 
-int readHeliumServo (void) {
-  return HeliumServo.read();
-}
+void runBallastServo (void) {
+  analogWrite(BallastPin, 243);
+  delay(200);
 
-void setBallastServo (int angle) {
-  BallastServo.write(angle);
-}
+  analogWrite(BallastPin, 193);
+  delay(400);
 
-void oscillateBallastServo (int period, int repetitions, int degree) {
-    for(int i; i < repetitions; i++) {
-      BallastServo.write(BallastStartAngle+degree);
-      delay(period);
-      BallastServo.write(BallastStartAngle);
-    }
-}
+  analogWrite(BallastPin, 154);
+  delay(100);
 
-int readBallastServo (void) {
-  return BallastServo.read();
+  analogWrite(BallastPin, 192);
+  delay(500);
 }
 

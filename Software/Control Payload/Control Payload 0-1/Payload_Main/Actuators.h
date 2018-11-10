@@ -6,17 +6,19 @@
 
 //Constants
 #define HeliumStartAngle 0
-#define BallastStartAngle 0 
-#define MaxHeliumVentTime 10000
+
+//Helium Servo
+struct Helium_Data{
+  float position;
+  unsigned long ventTime;
+  bool open;
+};
 
 //Functions
 //Main Setup Function
 void setup_Actuators(void);
-int openHeliumServo (float percentOpen);
-void closeHeliumServo (void);
-int oscillateHeliumServo (int period, int repetitions, int degree);
-int readHeliumServo (void);
-void setBallastServo (int angle);
-void oscillateBallastServo (int period, int repetitions, int degree);
-int readBallastServo (void);
+void openHeliumServo (struct Helium_Data* data, float percentOpen);
+void closeHeliumServo (struct Helium_Data* data);
+void oscillateHeliumServo (struct Helium_Data* data, int period, int repetitions, int degree);
+void runBallastServo (void);
 #endif /* ifndef ACTUATORS_H */

@@ -10,8 +10,11 @@
 #define AUTO 1
 #define MANUAL 2
 
-#define HELIUM_SERVO 7
-#define BALLAST_SERVO 6
+#define ControlPeriod 300
+
+int ballastUsed = 0;
+int heliumUsed = 0;
+
 #define CUT_DOWN 5
 
 #define d2r (M_PI / 180.0)
@@ -22,19 +25,19 @@ pressure_sensor pressure2(ADDRESS_LOW);
 IMU imu;
 GPS gps;
 //altitude_control control;
-// Servo Setup
-Servo helium_servo;
-Servo ballast_servo;
-int helium_pos = 0;
-int ballast_pos = 0;
+altitude_control control;
+helium_ballast action;
+
+// servo setup
+struct Helium_Data helium_servo;
+int ballast_count;
 
 unsigned long controlTime;
 unsigned long conditionTime;
-helium_ballast action;
-float altitude;
-int mode = MANUAL;
+unsigned long sendTime;
 
 float temperature;
+float altitude;
 float altitude1;
 float altitude2;
 float velocity;
@@ -43,6 +46,9 @@ GPS_Data gps_data;
 
 double initial_lat;     
 double initial_long;
+
+struct Incoming_Data incoming;
+struct Outgoing_Data outgoing;
 
 void setup()
 {
@@ -64,22 +70,27 @@ void setup()
   imu.initialize_IMU();
   Serial.println("After IMU");
 
-  helium_servo.attach(HELIUM_SERVO);
-  ballast_servo.attach(BALLAST_SERVO);
-
   controlTime = millis();
   conditionTime = controlTime;
+  sendTime = controlTime;
+  
+  helium_servo.ventTime = controlTime;
+  helium_servo.position = 0;
+  helium_servo.open = false;
+  
+  ballast_count = 0;
+  
   altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
   
   gps_data = gps.read_GPS();         
   initial_lat = gps.get_lat();    
   initial_long = gps.get_long();
+  
+  incoming.update_rate = (5 * 60);
+  incoming.manual_adjust = 0;
+  incoming.control_mode = 1;
 
 }
-
-#define NO_ACTION 0
-#define DROP_BALLAST 1
-#define RELEASE_HELIUM 2
 
 
 void loop()
@@ -123,18 +134,105 @@ void loop()
     Serial.println("");
 
   }
-    
+  
+  // send message
+  if ((millis() - sendTime) / 1000 >= incoming.update_rate) {
+    // Temperature Data
+    outgoing.temperature = temperature; // get temperature
+    // Pressure Data
 
-  //run control algorithm every 5 minutes
-  if(((millis()-controlTime)/1000 >= 5*60) && mode == AUTO){//should we make this a variable time?
-    //action = control.get_action(altitude, velocity, imu_data.accelUp);
-    //float battery_level = check_battery();
-  } else if (mode == MANUAL) {
-    //action = getCommunicationAction(); // TODO: Kyle can you interface the communciation override here?
+    float prs1 = pressure1.read_pressure();
+    float prs2 = pressure2.read_pressure();
+    float prs;
+    if (abs(prs1 - prs2) > .25 * prs1) {
+      if (abs(altitude1 - altitude) > abs(altitude2 - altitude)) {
+        prs = prs2;
+      } else {
+        prs = prs2;
+      }
+    } else {
+      prs = (prs1 + prs2) / 2;
+    }
+
+    outgoing.pressure = prs; // get pressure
+    // Acceleration Data
+    // GPS Data
+    outgoing.altitude = gps_data.altitude;
+    outgoing.latitude = gps_data.latitude;
+    outgoing.longitude = gps_data.longitude;
+    // Velovity Data
+    outgoing.vel = velocity;
+    // Ballast Data
+    outgoing.ballast = ballastUsed;
+    // Helium Data
+    outgoing.helium = heliumUsed;
+    // State Data
+    outgoing.state = 0; // state machine defunct
+    // Control Mode Data
+    outgoing.control_mode = incoming.control_mode;
+    // Emergency Data
+    outgoing.emergency = 0; // no emergency settings
+
+    encode_message(&outgoing);
+    call_iridium(10);
+    delay(1000);
+    decode_message(&incoming);
+
+    sendTime = millis();
   }
 
-  //act on action
-  //action TODO: release ballast or helium
+  //run control algorithm every 5 minutes
+  if ((millis() - controlTime) / 1000 >= ControlPeriod && incoming.control_mode == AUTO) { //should we make this a variable time?
+    // fill struct with ballast and helium scores
+    action = control.get_action(altitude, velocity, imu_data.accelUp);
+    if (action.helium > 0) {
+      if (action.helium > ControlPeriod) {
+        action.helium = ControlPeriod;
+      }
+      // set helium vent end time
+      helium_servo.ventTime = (unsigned long)(action.helium*1000) + millis(); 
+      // update helium used register
+      heliumUsed = heliumUsed + action.helium;
+      // open helium 80%
+      openHeliumServo (&helium_servo, .8);
+    } else if (action.ballast > 0) {
+      if (action.ballast > ControlPeriod/4) {
+        action.ballast= ControlPeriod/4;
+      }
+      // set count of how many ballast drops during this control cycle
+      ballast_count = (int) (action.ballast);
+    }
+  } else if (incoming.control_mode == MANUAL && incoming.manual_adjust) {
+    // unlatch manual adjust bit
+    incoming.manual_adjust = false;
+    // check whether adjustment is for helium or ballast
+    if (incoming.manual_select) {
+      // set count of how many ballast drops during this control cycle
+      ballast_count = (int) (incoming.manual_amount);
+    } else {
+      // set helium vent end time
+      helium_servo.ventTime = (unsigned long)(incoming.manual_amount*1000) + millis(); 
+      // open helium 80%
+      openHeliumServo (&helium_servo, .8);
+      // update helium used register
+      heliumUsed = heliumUsed + incoming.manual_amount;
+    }
+  }
+
+  // Drop ballast if currently requested
+  if (ballast_count > 0) {
+    // drop ballast and decrement the count
+    runBallastServo();
+    ballast_count = ballast_count - 1;
+    // update helium used register
+    ballastUsed = ballastUsed + 1;
+  }
+
+  // Close helium vent after alloted time
+  if (helium_servo.ventTime < millis()) {
+    // close the helium vent after time runs out
+    closeHeliumServo (&helium_servo);
+  }
 }
 
 float verticalVelocityCalc(float altitudeNew, float altitudeOld, unsigned long timeNew, unsigned long timeOld){
@@ -147,30 +245,6 @@ float altitudeCalc(float alt1, float alt2) {
   return(alt);
 }
 
-void open_close_helium() {
-  if (helium_pos == 0) {
-    helium_servo.write(180);
-    helium_pos = 180;
-  } else if (helium_pos == 180) {
-    helium_servo.write(0);
-    helium_pos = 0;
-  }
-}
-
-void release_ballast(int n) {
-  // n = number of drops
-  for (int i = 0; i < n; i++) {
-    if(ballast_pos == 0) {
-      ballast_servo.write(90);
-      ballast_pos = 90;
-      delay(1350);
-    } else if(ballast_pos == 90) {
-      ballast_servo.write(0);
-      ballast_pos = 0;
-      delay(1350);
-    }
-  }
-}
 void auto_cutdown(double initial_lat, double initial_long, double lat2, double long2)
 {
     float dlong = (long2 - initial_long) * d2r;
