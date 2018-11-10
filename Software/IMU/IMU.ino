@@ -5,17 +5,25 @@ float xCalibration[3];
 float yCalibration[3];
 //IMU
 MPU9250_DMP imu;
+
+float zAcceleration;
+float horizontalAcceleration;
+float direction;
+
+boolean output_single_on = false;
+boolean output_comms_test = false;
+
 void setup()
 {
   SerialUSB.begin(115200); //set baud rate
-
+  Serial.begin(9600);
   // Check communication with IMU
-  while(imu.begin() != 0)
+  while(imu.begin() != INV_SUCCESS)
   {
       SerialUSB.println("Unable to connect with IMU.");
       delay(5000);
   }//end while display
-
+  
   //enable 6-axis quaternion outpu
   imu.dmpBegin(DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_GYRO_CAL, 50);//check sampling rate
 
@@ -39,32 +47,53 @@ void setup()
   yCalibration[0] = 0; //x
   yCalibration[1] = 1; //y
   yCalibration[2] = 0; //z
+  
 }//end setup_IMU_01
 
 void loop()
 {
-  char comm;
-  if(Serial.available() > 0){
-    comm = Serial.read();
-    if(comm == '1'){
-      Serial.print('1');
-    }
-    else{
-      Serial.print('0');
+  // Can add comms test code as an additional command here
+  if (Serial.available() >= 2) {
+    if (Serial.read() == '#') { // Start of control message
+      int command = Serial.read(); // read command
+      if (command == 'f') { // Request Data
+        output_single_on = true;
+      } else if (command == 'c') { // Reply to Comms test
+        output_comms_test = true;
+      }
     }
   }
+  /*if(Serial.available() > 0){
+    comm = Serial.read();
+    if(comm == '1'){
+      Serial.print('2');//may change back to '1'
+    }
+    else if (comm == '0') {
+      Serial.print('0');
+    } else if (comm == '2') {
+      exportValues(zAcceleration, horizontalAcceleration, direction);
+    }
+  } */
   //IMU_OUTPUT updateValues;
-  if ( imu.fifoAvailable() > 0 )//if there is new data
+  if ( imu.fifoAvailable() )//if there is new data
   {
     if (imu.dmpUpdateFifo() == 0)//update data
     {
       //update orientation
+      SerialUSB.println("inif");
       imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
       imu.computeEulerAngles(false); //output in radians
       calculateValues();
       }
   }
-  return;// updateValues;
+
+  if (output_single_on) exportValues(zAcceleration, horizontalAcceleration, direction); // send if data is requested
+  if (output_comms_test) commsReply();
+
+  output_single_on = false;
+  output_comms_test = false;
+  return;
+  
 }
 
 static void calculateAngles(float qw, float qx, float qy, float qz, double& roll, double& pitch, double& yaw){
@@ -122,11 +151,11 @@ void calculateValues(){
   yOrientation[2] = yCalibration[0] *	(cos(psi) * sin(theta) * cos(phi) + sin(psi) * sin(phi)) + yCalibration[1] * (cos(psi) * sin(theta) * sin(phi) - sin(psi) * cos(phi)) + yCalibration[2] * cos(theta) * cos(psi);
 
   //calculate dot product to project acceleration onto orientation
-  float zAcceleration = -1*(zOrientation[0] * -1*imu.calcAccel(imu.ay) + zOrientation[1] * -1* imu.calcAccel(imu.ax) + zOrientation[2] * imu.calcAccel(imu.az));
+  zAcceleration = -1*(zOrientation[0] * -1*imu.calcAccel(imu.ay) + zOrientation[1] * -1* imu.calcAccel(imu.ax) + zOrientation[2] * imu.calcAccel(imu.az));
   float xAcceleration = -1*(xOrientation[0] * -1*imu.calcAccel(imu.ay) + xOrientation[1] * -1* imu.calcAccel(imu.ax) + xOrientation[2] * imu.calcAccel(imu.az));
   float yAcceleration = -1*(yOrientation[0] * -1*imu.calcAccel(imu.ay) + yOrientation[1] * -1* imu.calcAccel(imu.ax) + yOrientation[2] * imu.calcAccel(imu.az));
 
-  float direction;
+  direction;
 
   if(xAcceleration < 0){
     direction = atan(yAcceleration/xAcceleration)*180/M_PI + 180;
@@ -141,15 +170,9 @@ void calculateValues(){
     direction = yAcceleration > 0 ? M_PI/2 : 3*M_PI/2;
   }
 
-  float horizontalAcceleration = sqrt(xAcceleration * xAcceleration + yAcceleration * yAcceleration);
-  exportValues(zAcceleration, horizontalAcceleration, direction);
-}
+  horizontalAcceleration = sqrt(xAcceleration * xAcceleration + yAcceleration * yAcceleration);
+  //exportValues(zAcceleration, horizontalAcceleration, direction);
 
-void exportValues(float Vaccel, float Haccel, float dir){
-  Serial.print('<' + String(Vaccel) + ',' + String(Haccel) + ',' + String(dir) + '>');
-}
-
-void printTest(){
   SerialUSB.println("Q:" + String(imu.calcQuat(imu.qw),4) + ", " + String(imu.calcQuat(imu.qx),4) + ", " + String(imu.calcQuat(imu.qy),4) + ", " + String(imu.calcQuat(imu.qz), 4));
   SerialUSB.println("Accel:" + String(-1*imu.calcAccel(imu.ay)) + ", " + String(-1*imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.az)));
   SerialUSB.println("Vertical Acceleration: " + String(zAcceleration));
@@ -161,3 +184,28 @@ void printTest(){
   SerialUSB.println("Pitch: " + String(psi) + " Roll: " + String(theta) + " Yaw: " + String(phi));
   SerialUSB.println();
 }
+
+void exportValues(float Vaccel, float Haccel, float dir){
+  Serial.print("H ");
+  Serial.print(String(Vaccel)); Serial.print(",");
+  Serial.print(String(Haccel)); Serial.print(",");
+  Serial.print(String(dir)); Serial.println();
+}
+
+void commsReply() {
+  Serial.print("C ");
+  Serial.print("2.0");
+}
+/*
+void printTest(){
+  SerialUSB.println("Q:" + String(imu.calcQuat(imu.qw),4) + ", " + String(imu.calcQuat(imu.qx),4) + ", " + String(imu.calcQuat(imu.qy),4) + ", " + String(imu.calcQuat(imu.qz), 4));
+  SerialUSB.println("Accel:" + String(-1*imu.calcAccel(imu.ay)) + ", " + String(-1*imu.calcAccel(imu.ax)) + ", " + String(imu.calcAccel(imu.az)));
+  SerialUSB.println("Vertical Acceleration: " + String(zAcceleration));
+  SerialUSB.println("OrientationZ  " + String(zOrientation[0]) + " , " + String(zOrientation[1]) + " , " + String(zOrientation[2]));
+  SerialUSB.println("OrientationX  " + String(xOrientation[0]) + " , " + String(xOrientation[1]) + " , " + String(xOrientation[2]));
+  SerialUSB.println("OrientationY  " + String(yOrientation[0]) + " , " + String(yOrientation[1]) + " , " + String(yOrientation[2]));
+  SerialUSB.println("Horizontal Acceleration: " + String(horizontalAcceleration) + " Angle: " + String(direction,4));
+  SerialUSB.println("Y acceleration: " + String(yAcceleration) + " X Acceleration: " + String(xAcceleration));
+  SerialUSB.println("Pitch: " + String(psi) + " Roll: " + String(theta) + " Yaw: " + String(phi));
+  SerialUSB.println();
+}*/

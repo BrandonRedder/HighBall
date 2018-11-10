@@ -1,5 +1,11 @@
+#include <SparkFun_MS5803_I2C.h>
+#include <Wire.h>
+
 #include "Sensors.h"
-#include <string>
+#include <stdlib.h>
+#include <string.h>
+#include <TextFinder.h>
+
 // Temperature Sensor {{{
 #define TEMPERATURE_DEFAULT_CAL 100.0
 #define TEMPERATURE_DEFAULT_PIN A2
@@ -44,26 +50,24 @@ void temperature_sensor::set_pin(int _pin) {
 
 // }}}
 // Pressure Sensor {{{
-#define PRESSURE_DEFAULT_ADDR 0x76
+//#define PRESSURE_DEFAULT_ADDR 0x76
 // Default constructor, assumes address=0x76
-pressure_sensor::pressure_sensor() {
-  set_addr(PRESSURE_DEFAULT_ADDR);
-  create_sensor(get_addr());
+pressure_sensor::pressure_sensor() : sensor(ADDRESS_HIGH) {
+  //initialize_sensor();
 }
 
 // Constructor, user provided address
-pressure_sensor::pressure_sensor(int _addr) {
-  set_addr(_addr);
-  create_sensor(get_addr());
+pressure_sensor::pressure_sensor(ms5803_addr _addr) : sensor(_addr) {
+  //initialize_sensor();
 }
 
 // Constructor, user provided sensor
-pressure_sensor::pressure_sensor(MS5803& _sensor) {
+/*pressure_sensor::pressure_sensor(MS5803& _sensor) {
   // This is not the recommended method of interacting with this class.
   // Provided for edge use cases
   sensor = _sensor;
   initialize_sensor();
-}
+}*/
 
 float pressure_sensor::read_pressure() {
   /* Reads the current pressure
@@ -72,7 +76,7 @@ float pressure_sensor::read_pressure() {
    * -------
    *  float: current pressure read by the sensor
    */
-  return(get_sensor().getPressure(ADC_4096));
+  return(sensor.getPressure(ADC_4096));
 }
 
 float pressure_sensor::find_altitude() {
@@ -88,27 +92,27 @@ float pressure_sensor::find_altitude() {
   float alt_feet = alt_meters * 3.28084;
   return(alt_feet);
 }
-
-void pressure_sensor::create_sensor(int _addr) {
+/*
+void pressure_sensor::create_sensor(ms5803_addr _addr) {
   /* Create the sensor and initialize it
    *
    * Inputs
    * ------
    *  _addr: int representing the address of the sensor
-   */
+
   // TODO: test whether this correctly sets the sensor variable
   MS5803 sensor(_addr);
   initialize_sensor();
-}
+}*/
 
 void pressure_sensor::initialize_sensor() {
   /* Initialize the sensor and print an error if it failed to initialize
    */
-  get_sensor().reset();
+  sensor.reset();
   int counter = 0;
-  while (get_sensor().begin() && counter < 5) {
+  while (sensor.begin() && counter < 5) {
     Serial.println("Pressure Sensor failed to initialize");
-    get_sensor.reset();
+    sensor.reset();
     delay(500);
     counter++;
     if (counter == 5) {
@@ -116,18 +120,19 @@ void pressure_sensor::initialize_sensor() {
       // while(1);
     }
   } // end while
-  set_baseline(get_sensor().getPressure(ADC_4096));
+  Serial.println("Pressure Sensor initialized");
+  set_baseline(sensor.getPressure(ADC_4096));
 }
 
 // get functions for each member variable
-int pressure_sensor::get_addr() {return(addr);}
+ms5803_addr pressure_sensor::get_addr() {return(addr);}
 
-MS5803& pressure_sensor::get_sensor() {return(sensor);}
+//MS5803& pressure_sensor::get_sensor() {return(sensor);}
 
 float pressure_sensor::get_baseline() {return(baseline);}
 
 // set functions for each member variable
-void pressure_sensor::set_addr(int _addr) {
+void pressure_sensor::set_addr(ms5803_addr _addr) {
   addr = _addr;
 }
 
@@ -144,19 +149,12 @@ void pressure_sensor::set_baseline(float _baseline) {
 IMU::IMU(){
   /* Constructor, tests serial communication and initializes the data to 0
    */
-  int status = comms_Test();
-  if(status == '1'){
-    SerialUSB.println("IMU Communication Success")
-  }
-  else{
-    SerialUSB.println("FAILED! IMU Communications.");
-  }
-  /* IMU_Data _data; */
-  /* _data.accelUp = 0; */
-  /* _data.accelHoriz = 0; */
-  /* _data.direction = 0; */
-  set_data(0, 0, 0);
+  set_Data(0, 0, 0);
 }
+
+TextFinder finder(Serial2);
+const int numOfFields = 3;
+float Array[numOfFields];
 
 int IMU::comms_Test() {
   /* Check communication between the IMU arduino and the main arduino
@@ -165,19 +163,34 @@ int IMU::comms_Test() {
    * -------
    *  int - 1 corresponds to sucess, 0 corresponds to failure
    */
-  int time = millis();
-  Serial2.begin(9600);
-  Serial2.print('1');
+  //int time = millis();
+  //Serial2.begin(9600);
+  Serial.println("In Communication Test");
+  Serial2.print("#c");
   // check communication with IMU
-  while((millis()-time) < 180000){
-    if(Serial2.read() == '1'){
+  boolean found_CommsHeader = finder.find("C");
+
+  if (found_CommsHeader) {
+    Serial.println("Found Communication Header");
+    float testVal = finder.getFloat();
+    if (testVal == 2.0) {
+      return(1);
+    }
+  }
+
+  Serial.println("Did not Find Communication Header");
+
+  return(0);
+  /*while((millis()-time) < 180000){
+    if(Serial2.read() == '1'){//need to change back to '1'
       Serial2.print('0');
       return(1);
     }
     Serial2.print('1');
-    wait(500);
+    delay(500);
   }
   return(0);
+  */
 }
 
 IMU_Data IMU::read_IMU(){
@@ -187,36 +200,78 @@ IMU_Data IMU::read_IMU(){
    * -------
    *  IMU_Data - data corresponding to the current values on the IMU
    */
-  bool reading = false;
-  std::String receivedValues = "";
-  std::string delimiter = ",";
-  float numbers[3];
-  int numIdx=0;
-  while(Serial2.available() > 0){
+  Serial2.write("#f"); //request Data
+  int fieldIndex = 0;
+  boolean found_HeaderChar = finder.find("H");
+
+  if(found_HeaderChar){
+    while(fieldIndex < numOfFields){
+      Array[fieldIndex++] = finder.getFloat();
+    }
+    set_Data(Array[0], Array[1], Array[2]);
+    Serial.println("IMU Received Data");
+    Serial.println(String(Array[0]) + ", " +  String(Array[1]) + ", " + String(Array[2]));
+  }
+
+  //bool reading = false;
+  //String receivedValues = "";
+  //String delimiter = ",";
+  //float numbers[3] = {0.0,0.0,0.0};
+  //int numIdx=0;
+  /*
+  int time = millis();
+  //Request Data
+  Serial2.print('2');
+  Serial.println("Inside read_IMU");
+  while((millis()-time) < 180000) {
+    if (Serial2.available() > 0) {
+      Serial.println((char)Serial2.read());
+      /*if(Serial2.read() == '<') {
+        numbers[0] = Serial2.readStringUntil(',').toFloat();
+        numbers[1] = Serial2.readStringUntil(',').toFloat();
+        numbers[2] = Serial2.readStringUntil('>').toFloat();
+        set_Data(numbers[0], numbers[1], numbers[2]);
+        Serial2.print('0');
+        return(get_Data());
+      } else {
+        delay(500);
+      }
+    } else {
+      Serial2.print('2');
+    }
+  }*/
+
+/*
+  if(Serial2.available() > 0){
     int num = Serial2.read();
+    //Serial.println(num);
     if (reading == true){
-      if (num != '>'){
+      if ((char) num != '>'){
         //if new num(character) is not at the end, append string
+        Serial.println("This is num" + String(num));
         receivedValues += (char)num;
       }//end if end
       else{
         reading = false;
-        receivedVales += '\0';
+        receivedValues += '\0';
       }//done reading
     }
     //check for start character
-    else if (num == '<'){
+    else if ((char) num == '<'){
       reading = true;
     }
   }
-  size_t pos = 0;
-  std::String token;
-  while((pos = receivedValues.find(delimiter)) != std::string::npos){
-    token = receivedValues.substr(0,pos);
-    numbers[numIdx] = std::stof(token);
+  Serial.println("String of receivedValues" + receivedValues);
+  int pos = 0;
+  String token;
+  while((pos = receivedValues.indexOf(delimiter)) != -1){
+    token = receivedValues.substring(0,pos);
+    numbers[numIdx] = token.toFloat();
     numIdx++;
+    receivedValues.remove(0,pos);
   }
   set_Data(numbers[0], numbers[1], numbers[2]);
+*/
 }
 
 void IMU::set_Data(float accelU, float accelH, float dir){
@@ -229,20 +284,33 @@ IMU_Data IMU::get_Data(){
   return(data);
 }
 
+void IMU::initialize_IMU() {
+  Serial.println("Initializing IMU");
+  Serial2.begin(9600);
+  Serial2.flush();
+  int status = comms_Test();
+  if(status == 1){
+    Serial.println("IMU Communication Success");
+  }
+  else{
+    Serial.println("FAILED! IMU Communications.");
+  }
+  Serial2.flush();
+}
+
 // }}}
 
 // GPS {{{
 #define GPS_DEFAULT_ADDR 0x10
 #define GPS_DEFAULT_WAKE 22
 #define GPS_DEFAULT_RESETN 23
-#define GPS_DEFAULT_INT 24
+#define GPS_DEFAULT_INT 2
 // Default Constructor, assumes default addr is 0x10
 GPS::GPS() {
   set_addr(GPS_DEFAULT_ADDR);
   set_wake(GPS_DEFAULT_WAKE);
   set_reset(GPS_DEFAULT_RESETN);
   set_int(GPS_DEFAULT_INT);
-  create_GPS(get_addr());
 }
 
 // Constructor, provide address
@@ -251,7 +319,6 @@ GPS::GPS(int _addr, int _wake, int _reset, int _int) {
   set_wake(_wake);
   set_reset(_reset);
   set_int(_int);
-  create_GPS(get_addr());
 }
 
 GPS_Data GPS::read_GPS() {
@@ -262,14 +329,19 @@ GPS_Data GPS::read_GPS() {
    *  GPS_Data: struct containing altitude, longitude, and latitude
    */
   digitalWrite(get_wake(), HIGH); // Wake GPS
-  delay(50);
+  delay(100);
 
-  while (!digitalRead(get_int())); // Wait for GPS to be ready
-
+  //while (!digitalRead(get_int())); // Wait for GPS to be ready
   while (myGPS.available()) { // available() returns # of new bytes that can be read
     GPS_Parser.encode(myGPS.read()); // Give data to parser
   }
-
+  /*if (GPS_Parser.location.isValid()){
+    Serial.println(String(GPS_Parser.altitude.feet()) + String(GPS_Parser.location.lat()) + String(GPS_Parser.location.lng()) + String(GPS_Parser.satellites.value()));
+  }
+  else{
+    Serial.println("Location not valid");
+    Serial.println(String(GPS_Parser.date.day()));
+  }*/
   set_alt(GPS_Parser.altitude.feet());
   set_lat(GPS_Parser.location.lat());
   set_long(GPS_Parser.location.lng());
@@ -297,16 +369,21 @@ void GPS::initialize_GPS() {
   digitalWrite(get_wake(), HIGH);
 
   int counter = 0;
+  Serial.println("Initializing GPS");
   while (myGPS.begin() && counter < 5) {
     digitalWrite(get_reset(), HIGH);
     Serial.println("GPS failed to initialize");
     delay(500);
-    counter++; 
+    counter++;
     if (counter == 5) {
       Serial.println("GPS failed 5x, FAILING!");
       // while(1);
     } // end if
   } // end while
+  Serial.println("GPS Initialized");
+  
+  String configString = myGPS.createMTKpacket(886, ",3");    //balloon mode
+  myGPS.sendMTKpacket(configString);
 }
 
 // get functions
@@ -320,13 +397,13 @@ int GPS::get_int() {return(interact);}
 
 GPS_Data GPS::get_data() {return(data);}
 
-float GPS::get_alt() {return(data.altitude);}
+double GPS::get_alt() {return(data.altitude);}
 
-float GPS::get_lat() {return(data.latitude);}
+double GPS::get_lat() {return(data.latitude);}
 
-float GPS::get_long() {return(data.longitude);}
+double GPS::get_long() {return(data.longitude);}
 
-int GPS::get_sats() {return(data.satellites);}
+uint32_t GPS::get_sats() {return(data.satellites);}
 
 // set functions
 void GPS::set_addr(int _addr) {
@@ -349,24 +426,29 @@ void GPS::set_data(GPS_Data _data) {
   data = _data;
 }
 
-void GPS::set_alt(float _alt) {
+void GPS::set_alt(double _alt) {
   data.altitude = _alt;
 }
 
-void GPS::set_lat(float _lat) {
+void GPS::set_lat(double _lat) {
   data.latitude = _lat;
 }
 
-void GPS::set_long(float _long) {
+void GPS::set_long(double _long) {
   data.longitude = _long;
 }
 
-void GPS::set_sats(int _sats) {
+void GPS::set_sats(uint32_t _sats) {
   data.satellites = _sats;
 }
 
 // }}}
 // Battery Voltage {{{
+#define Battery A3
+#define Battery_Divider 1.15385
+#define Battery_Max 12.6
+#define Battery_Min 8.25
+
 float check_battery(void)
 {
   /* Measurement of the battery health */

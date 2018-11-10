@@ -5,7 +5,7 @@
 #include <SparkFun_MS5803_I2C.h>
 #include <SparkFun_I2C_GPS_Arduino_Library.h>
 #include <TinyGPS++.h>
-#include <SparkFunMPU9250-DMP.h>
+//#include <SparkFunMPU9250-DMP.h>
 
 //Temperature Sensor
 class temperature_sensor {
@@ -28,23 +28,25 @@ class temperature_sensor {
 class pressure_sensor {
   public:
     pressure_sensor();
-    pressure_sensor(int);
-    pressure_sensor(MS5803&);
+    pressure_sensor(ms5803_addr);
+    //pressure_sensor(MS5803&);
     float read_pressure();
     float find_altitude();
 
     void create_sensor(int);
     void initialize_sensor();
 
-    int get_addr();
-    MS5803& get_sensor();
+    ms5803_addr get_addr();
+    //MS5803& get_sensor();
     float get_baseline();
-    void set_addr(int);
+    void set_addr(ms5803_addr);
     void set_baseline(float);
+
+    MS5803 sensor;
+
 
   private:
     int addr;
-    MS5803 sensor;
     float baseline;
 };
 
@@ -62,15 +64,16 @@ class IMU {
       IMU_Data read_IMU();
       IMU_Data get_Data();
       void set_Data(float, float, float);
+      void initialize_IMU();
     private:
       IMU_Data data;
-}
+};
 // GPS
 struct GPS_Data {
-  float altitude;
-  float latitude;
-  float longitude;
-  int satellites;
+  double altitude;
+  double latitude;
+  double longitude;
+  uint32_t satellites;
 };
 
 class GPS {
@@ -87,19 +90,19 @@ class GPS {
     int get_reset();
     int get_int();
     GPS_Data get_data();
-    float get_alt();
-    float get_lat();
-    float get_long();
-    int get_sats();
+    double get_alt();
+    double get_lat();
+    double get_long();
+    uint32_t get_sats();
     void set_addr(int);
     void set_wake(int);
     void set_reset(int);
     void set_int(int);
     void set_data(GPS_Data);
-    void set_alt(float);
-    void set_lat(float);
-    void set_long(float);
-    void set_sats(int);
+    void set_alt(double);
+    void set_lat(double);
+    void set_long(double);
+    void set_sats(uint32_t);
 
   private:
     int addr;
