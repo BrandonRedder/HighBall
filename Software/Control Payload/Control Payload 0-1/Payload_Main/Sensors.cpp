@@ -29,7 +29,7 @@ float temperature_sensor::read_temp() {
    *  float: Temperature measured by the sensor
    */
   float voltage = (5 / 1024) * ((float)analogRead(get_pin()));
-  return(voltage * get_cal());
+  return(voltage - 0.5) * 100;
 }
 
 // get functions for each member variable
