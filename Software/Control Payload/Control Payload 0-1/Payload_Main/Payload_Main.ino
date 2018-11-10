@@ -12,6 +12,7 @@
 
 #define HELIUM_SERVO 7
 #define BALLAST_SERVO 6
+#define CUT_DOWN 5
 
 #define d2r (M_PI / 180.0)
 
@@ -45,7 +46,9 @@ double initial_long;
 
 void setup()
 {
-  pinMode(5,OUTPUT);  
+  //Setup and turn off cutdown mechanism
+  pinMode(CUT_DOWN,OUTPUT);
+  analogWrite(CUT_DOWN,0);
   Serial.begin(9600);
   
   Serial.println("Before Pressure");
@@ -178,7 +181,7 @@ if(d>100.0)        //cutdown if distance is greater than 100.0 miles
     
 }
 void cut_down(){
-  digitalWrite(5,HIGH);
-  delay(10000);
-  digitalWrite(5,LOW);
+  analogWrite(CUT_DOWN,105);
+  delay(000);
+  analogWrite(CUT_DOWN,0);
 }
