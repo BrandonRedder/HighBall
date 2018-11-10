@@ -27,7 +27,7 @@
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
-<layer number="20" name="Dimension" color="24" fill="1" visible="no" active="yes"/>
+<layer number="20" name="Dimension" color="24" fill="1" visible="yes" active="yes"/>
 <layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
@@ -184,6 +184,8 @@
 <text x="0.3175" y="66.675" size="1.778" layer="25">-</text>
 <dimension x1="0" y1="0" x2="0" y2="88.9" x3="-9.525" y3="44.45" textsize="1.778" layer="48" dtype="vertical" unit="inch"/>
 <dimension x1="0" y1="88.9" x2="171.45" y2="88.9" x3="85.725" y3="95.25" textsize="1.778" layer="48" dtype="horizontal" unit="inch"/>
+<dimension x1="0" y1="88.9" x2="171.45" y2="88.9" x3="85.725" y3="95.25" textsize="1.778" layer="20" dtype="horizontal" unit="inch"/>
+<dimension x1="0" y1="0" x2="0" y2="88.9" x3="-5.715" y3="44.45" textsize="1.778" layer="20" dtype="vertical" unit="inch"/>
 </plain>
 <libraries>
 <library name="SparkFun-Boards" urn="urn:adsk.eagle:library:509">
