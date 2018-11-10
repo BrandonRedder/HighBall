@@ -22,7 +22,7 @@ int heliumUsed = 0;
 //temperature_sensor temp;
 pressure_sensor pressure1(ADDRESS_HIGH);
 pressure_sensor pressure2(ADDRESS_LOW);
-IMU imu;
+//IMU imu;
 GPS gps;
 //altitude_control control;
 altitude_control control;
@@ -36,12 +36,14 @@ unsigned long controlTime;
 unsigned long conditionTime;
 unsigned long sendTime;
 
+bool testActuator = true;
+
 float temperature;
 float altitude;
 float altitude1;
 float altitude2;
 float velocity;
-IMU_Data imu_data;
+//IMU_Data imu_data;
 GPS_Data gps_data;
 
 double initial_lat;     
@@ -65,11 +67,11 @@ void setup()
   Serial.println("Before GPS");
   gps.create_GPS();
   Serial.println("After GPS");
-
+/*
   Serial.println("Before IMU");
   imu.initialize_IMU();
   Serial.println("After IMU");
-
+*/
   controlTime = millis();
   conditionTime = controlTime;
   sendTime = controlTime;
@@ -103,7 +105,7 @@ void loop()
   //TODO: deal with anything else that would change
   //check current conditions
 
-  if((millis() - conditionTime)/1000 >= 5){//should we make this a variable time?
+  if((millis() - conditionTime)/1000 >= 5 && !testActuator){//should we make this a variable time?
     //temperature = temp.read_temp();
 
     altitude1 = pressure1.find_altitude();
@@ -120,12 +122,12 @@ void loop()
     conditionTime = millis();
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
     Serial.println("Pressure Sensor Altitude = " + String(altitude));
-
+/*
     imu_data = imu.read_IMU();
     Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
     Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
     Serial.println("IMU Direction = " + String(imu_data.direction));
-
+*/
     gps_data = gps.read_GPS();
     Serial.println("GPS Altitude = " + String(gps_data.altitude));
     Serial.println("GPS latitude = " + String(gps_data.latitude));
@@ -136,7 +138,7 @@ void loop()
   }
   
   // send message
-  if ((millis() - sendTime) / 1000 >= incoming.update_rate) {
+  if ((millis() - sendTime) / 1000 >= incoming.update_rate && !testActuator) {
     // Temperature Data
     outgoing.temperature = temperature; // get temperature
     // Pressure Data
@@ -182,9 +184,10 @@ void loop()
   }
 
   //run control algorithm every 5 minutes
-  if ((millis() - controlTime) / 1000 >= ControlPeriod && incoming.control_mode == AUTO) { //should we make this a variable time?
+  if ((millis() - controlTime) / 1000 >= ControlPeriod && incoming.control_mode == AUTO && !testActuator) { //should we make this a variable time?
     // fill struct with ballast and helium scores
-    action = control.get_action(altitude, velocity, imu_data.accelUp);
+    //action = control.get_action(altitude, velocity, imu_data.accelUp);
+    action = control.get_action(altitude, velocity, 0);
     if (action.helium > 0) {
       if (action.helium > ControlPeriod) {
         action.helium = ControlPeriod;
@@ -196,13 +199,13 @@ void loop()
       // open helium 80%
       openHeliumServo (&helium_servo, .8);
     } else if (action.ballast > 0) {
-      if (action.ballast > ControlPeriod/4) {
-        action.ballast= ControlPeriod/4;
+      if (action.ballast > ControlPeriod/2) {
+        action.ballast= ControlPeriod/2;
       }
       // set count of how many ballast drops during this control cycle
       ballast_count = (int) (action.ballast);
     }
-  } else if (incoming.control_mode == MANUAL && incoming.manual_adjust) {
+  } else if (incoming.control_mode == MANUAL && incoming.manual_adjust && !testActuator) {
     // unlatch manual adjust bit
     incoming.manual_adjust = false;
     // check whether adjustment is for helium or ballast
@@ -218,6 +221,14 @@ void loop()
       heliumUsed = heliumUsed + incoming.manual_amount;
     }
   }
+
+  if ((millis() - conditionTime)/1000 >= 10 && testActuator) {
+    helium_servo.ventTime = (unsigned long)(2*1000) + millis(); 
+    openHeliumServo (&helium_servo, .8);
+    Serial.println("Vent Helium 8 seconds");
+    conditionTime = millis();
+  }
+
 
   // Drop ballast if currently requested
   if (ballast_count > 0) {
@@ -252,14 +263,14 @@ void auto_cutdown(double initial_lat, double initial_long, double lat2, double l
     float a = pow(sin(dlat/2.0), 2) + cos(initial_lat*d2r) * cos(lat2*d2r) * pow(sin(dlong/2.0), 2);
     float c = 2 * atan2(sqrt(a), sqrt(1-a));
     float d = 3956 * c; 
-if(d>100.0)        //cutdown if distance is greater than 100.0 miles
-{
-  cut_down();
+  if(d>100.0)        //cutdown if distance is greater than 100.0 miles
+  {
+    cut_down();
+  }  
 }
-    
-}
+
 void cut_down(){
   analogWrite(CUT_DOWN,105);
-  delay(000);
+  delay(6000);
   analogWrite(CUT_DOWN,0);
 }
