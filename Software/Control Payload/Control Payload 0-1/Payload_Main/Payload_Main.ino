@@ -19,7 +19,7 @@ int heliumUsed = 0;
 
 #define d2r (M_PI / 180.0)
 
-temperature_sensor temp;
+//temperature_sensor temp;
 
 pressure_sensor pressure1(ADDRESS_HIGH);
 pressure_sensor pressure2(ADDRESS_LOW);
@@ -40,7 +40,9 @@ unsigned long controlTime;
 unsigned long conditionTime;
 unsigned long sendTime;
 
-float temperature;
+float temperature1=0;
+float temperature2=0;
+float temperature=0;
 
 float prs1;
 float prs2;
@@ -93,7 +95,10 @@ void setup()
   prs2 = pressure2.read_pressure();
   altitude =  altitudeCalc(pressure1.find_altitude(prs1), pressure2.find_altitude(prs2));
 
-  temperature = temp.read_temp();
+  temperature1 = pressure1.read_temperature();
+  temperature2 = pressure2.read_temperature();
+  temperature = (temperature1 + temperature2) / 2.0;
+
   
   gps_data = gps.read_GPS();         
   initial_lat = gps.get_lat();    
@@ -144,8 +149,12 @@ void loop()
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
     Serial.println("Pressure Sensor Altitude = " + String(altitude));
 
-    temperature = temp.read_temp();
+    temperature1 = pressure1.read_temperature();
+    temperature2 = pressure2.read_temperature();
+    temperature = (temperature1 + temperature2) / 2.0;
     Serial.println("");
+    Serial.println("Temperature 1 = " + String(temperature1));
+    Serial.println("Temperature 2 = " + String(temperature2));
     Serial.println("Temperature = " + String(temperature));
 /*
     imu_data = imu.read_IMU();

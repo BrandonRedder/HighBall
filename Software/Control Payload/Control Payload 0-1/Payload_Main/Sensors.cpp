@@ -29,7 +29,8 @@ float temperature_sensor::read_temp() {
    *  float: Temperature measured by the sensor
    */
   float voltage = (5.0 / 1024.0) * ((float)analogRead(get_pin()));
-  return(voltage - 0.5) * 100;
+  Serial.println("Temperature Voltage = " + String(voltage));
+  return((voltage - 0.5) * 100);
 }
 
 // get functions for each member variable
@@ -97,6 +98,10 @@ float pressure_sensor::find_altitude(float P) {
   //Serial.println("Altitude_meters = " + String(alt_meters));
   float alt_feet = alt_meters * 3.28084;
   return(alt_feet);
+}
+
+float pressure_sensor::read_temperature() {
+  return(sensor.getTemperature(CELSIUS, ADC_512));
 }
 /*
 void pressure_sensor::create_sensor(ms5803_addr _addr) {
@@ -449,12 +454,13 @@ void GPS::set_sats(uint32_t _sats) {
 }
 
 // }}}
+/*
 // Battery Voltage {{{
 #define Battery A3
 #define Battery_Divider 1.15385
 #define Battery_Max 12.6
 #define Battery_Min 8.25
-/*
+
 float check_battery(void)
 {
   // Measurement of the battery health

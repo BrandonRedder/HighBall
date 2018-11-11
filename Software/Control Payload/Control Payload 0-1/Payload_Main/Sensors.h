@@ -31,6 +31,7 @@ class pressure_sensor {
     pressure_sensor(ms5803_addr);
     //pressure_sensor(MS5803&);
     float read_pressure();
+    float read_temperature();
     float find_altitude(float);
 
     void create_sensor(int);
@@ -46,7 +47,7 @@ class pressure_sensor {
 
 
   private:
-    int addr;
+    ms5803_addr addr;
     float baseline;
 };
 
@@ -115,7 +116,7 @@ class GPS {
 };
 
 // Battery
-float check_battery();
+//float check_battery();
 /*
 //Constants
 // TODOC: These should be explained a bit more
