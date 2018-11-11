@@ -19,11 +19,15 @@ int heliumUsed = 0;
 
 #define d2r (M_PI / 180.0)
 
-//temperature_sensor temp;
+temperature_sensor temp;
+
 pressure_sensor pressure1(ADDRESS_HIGH);
 pressure_sensor pressure2(ADDRESS_LOW);
+
 //IMU imu;
+
 GPS gps;
+
 //altitude_control control;
 altitude_control control;
 helium_ballast action;
@@ -89,6 +93,8 @@ void setup()
   prs1 = pressure1.read_pressure();
   prs2 = pressure2.read_pressure();
   altitude =  altitudeCalc(pressure1.find_altitude(prs1), pressure2.find_altitude(prs2));
+
+  temperature = temp.read_temp();
   
   gps_data = gps.read_GPS();         
   initial_lat = gps.get_lat();    
@@ -136,6 +142,10 @@ void loop()
     conditionTime = millis();
     altitude = altitudeCalc(altitude1, altitude2);//need to do error checking, this was a quick fix
     Serial.println("Pressure Sensor Altitude = " + String(altitude));
+
+    temperature = temp.read_temp();
+    Serial.println("");
+    Serial.println("Temperature = " + String(temperature));
 /*
     imu_data = imu.read_IMU();
     Serial.println("IMU Upward Accel = " + String(imu_data.accelUp));
