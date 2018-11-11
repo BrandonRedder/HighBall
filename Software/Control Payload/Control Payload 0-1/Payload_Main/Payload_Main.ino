@@ -40,8 +40,6 @@ unsigned long controlTime;
 unsigned long conditionTime;
 unsigned long sendTime;
 
-bool testActuator = true;
-
 float temperature;
 
 float prs1;
@@ -84,10 +82,10 @@ void setup()
   conditionTime = controlTime;
   sendTime = controlTime;
   
+  setup_Actuators();
   helium_servo.ventTime = controlTime;
   helium_servo.position = 0;
   helium_servo.open = false;
-  
   ballast_count = 0;
 
   prs1 = pressure1.read_pressure();
@@ -100,6 +98,7 @@ void setup()
   initial_lat = gps.get_lat();    
   initial_long = gps.get_long();
   
+  setup_Communications();
   incoming.update_rate = (5 * 60);
   incoming.manual_adjust = 0;
   incoming.control_mode = 1;
@@ -116,7 +115,7 @@ void loop()
   //TODO: deal with anything else that would change
   //check current conditions
 
-  if((millis() - conditionTime)/1000 >= 5 && !testActuator){//should we make this a variable time?
+  if((millis() - conditionTime)/1000 >= 5){//should we make this a variable time?
     //temperature = temp.read_temp();
 
     gps_data = gps.read_GPS();
@@ -155,7 +154,7 @@ void loop()
   }
   
   // send message
-  if ((millis() - sendTime) / 1000 >= incoming.update_rate && !testActuator) {
+  if ((millis() - sendTime) / 1000 >= incoming.update_rate) {
     // Temperature Data
     outgoing.temperature = temperature; // get temperature
     // Pressure Data
@@ -198,7 +197,7 @@ void loop()
   }
 
   //run control algorithm every 5 minutes
-  if ((millis() - controlTime) / 1000 >= ControlPeriod && incoming.control_mode == AUTO && !testActuator) { //should we make this a variable time?
+  if ((millis() - controlTime) / 1000 >= ControlPeriod && incoming.control_mode == AUTO) { //should we make this a variable time?
     // fill struct with ballast and helium scores
     //action = control.get_action(altitude, velocity, imu_data.accelUp);
     action = control.get_action(altitude, velocity, 0);
@@ -219,7 +218,7 @@ void loop()
       // set count of how many ballast drops during this control cycle
       ballast_count = (int) (action.ballast);
     }
-  } else if (incoming.control_mode == MANUAL && incoming.manual_adjust && !testActuator) {
+  } else if (incoming.control_mode == MANUAL && incoming.manual_adjust) {
     // unlatch manual adjust bit
     incoming.manual_adjust = false;
     // check whether adjustment is for helium or ballast
@@ -236,13 +235,6 @@ void loop()
     }
   }
 
-  if ((millis() - conditionTime)/1000 >= 10 && testActuator) {
-    helium_servo.ventTime = (unsigned long)(2*1000) + millis(); 
-    openHeliumServo (&helium_servo, .8);
-    Serial.println("Vent Helium 8 seconds");
-    conditionTime = millis();
-  }
-
 
   // Drop ballast if currently requested
   if (ballast_count > 0) {
@@ -254,7 +246,7 @@ void loop()
   }
 
   // Close helium vent after alloted time
-  if (helium_servo.ventTime < millis()) {
+  if (helium_servo.ventTime < millis()  && helium_servo.open) {
     // close the helium vent after time runs out
     closeHeliumServo (&helium_servo);
   }

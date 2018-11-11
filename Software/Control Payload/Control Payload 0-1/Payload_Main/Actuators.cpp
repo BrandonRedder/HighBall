@@ -19,9 +19,9 @@ void openHeliumServo (struct Helium_Data* data, float percentOpen) {
   }
   percentOpen = percentOpen * 2;
   if (percentOpen <= 1) {
-    degree = 180 * acos(percentOpen) / PI;
+    degree = 180 * asin(percentOpen) / PI;
   } else {
-    degree = 180 * acos(percentOpen - 1) / PI + 90;
+    degree = 180 * asin(percentOpen - 1) / PI + 90;
   }
   HeliumServo.write(HeliumStartAngle + degree);
 }
