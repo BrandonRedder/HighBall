@@ -79,14 +79,18 @@ float pressure_sensor::read_pressure() {
   return(sensor.getPressure(ADC_4096));
 }
 
-float pressure_sensor::find_altitude() {
+float pressure_sensor::find_altitude(float P) {
   /* Determines the current altitude from a baseline
    *
+   * Parameters
+   * ----------
+   * P : float
+   *    Current absolute pressure
+   * 
    * Returns
    * -------
    *  float: current altitude above baseline in feet
    */
-  float P = read_pressure();
   //Serial.println("Altitude pressure = " + String(P));
   // altitude calculation from sparkfun example
   float alt_meters = 44330.0*(1-pow(P/get_baseline(),1/5.255));

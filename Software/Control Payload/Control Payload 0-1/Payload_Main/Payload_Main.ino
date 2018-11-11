@@ -39,6 +39,10 @@ unsigned long sendTime;
 bool testActuator = true;
 
 float temperature;
+
+float prs1;
+float prs2;
+float prs;
 float altitude;
 float altitude1;
 float altitude2;
@@ -81,8 +85,10 @@ void setup()
   helium_servo.open = false;
   
   ballast_count = 0;
-  
-  altitude =  altitudeCalc(pressure1.find_altitude(), pressure2.find_altitude());
+
+  prs1 = pressure1.read_pressure();
+  prs2 = pressure2.read_pressure();
+  altitude =  altitudeCalc(pressure1.find_altitude(prs1), pressure2.find_altitude(prs2));
   
   gps_data = gps.read_GPS();         
   initial_lat = gps.get_lat();    
@@ -91,7 +97,6 @@ void setup()
   incoming.update_rate = (5 * 60);
   incoming.manual_adjust = 0;
   incoming.control_mode = 1;
-
 }
 
 
@@ -108,14 +113,23 @@ void loop()
   if((millis() - conditionTime)/1000 >= 5 && !testActuator){//should we make this a variable time?
     //temperature = temp.read_temp();
 
-    altitude1 = pressure1.find_altitude();
-    altitude2 = pressure2.find_altitude();
+    gps_data = gps.read_GPS();
+    Serial.println("GPS Altitude = " + String(gps_data.altitude));
+    Serial.println("GPS latitude = " + String(gps_data.latitude));
+    Serial.println("GPS longitude = " + String(gps_data.longitude));
+    Serial.println("GPS satellites = " + String(gps_data.satellites));
+    Serial.println("");
+
+    prs1 = pressure1.read_pressure();
+    prs2 = pressure2.read_pressure();
+    altitude1 = pressure1.find_altitude(prs1);
+    altitude2 = pressure2.find_altitude(prs2);
     Serial.println("");
     Serial.println("Pressure Sensor Altitude 1 = " + String(altitude1));
     Serial.println("Presure Sensor Altitude 2 = " + String(altitude2));
-    Serial.println("Pressure Sensor Pressure 1 = " + String(pressure1.read_pressure()));
+    Serial.println("Pressure Sensor Pressure 1 = " + String(prs1));
     //Serial.println("Pressure Sensor Baseline 1 = " + String(pressure1.get_baseline()));
-    Serial.println("Pressure Sensor Pressure 2 = " + String(pressure2.read_pressure()));
+    Serial.println("Pressure Sensor Pressure 2 = " + String(prs2));
     //Serial.println("Pressure Sensor Baseline 2 = " + String(pressure2.get_baseline()));
     velocity = verticalVelocityCalc(altitudeCalc(altitude1, altitude2), altitude, millis(), conditionTime);
     Serial.println("Pressure Sensor Velocity = " + String(velocity));
@@ -128,13 +142,6 @@ void loop()
     Serial.println("IMU Horizontal Accel = " + String(imu_data.accelHoriz));
     Serial.println("IMU Direction = " + String(imu_data.direction));
 */
-    gps_data = gps.read_GPS();
-    Serial.println("GPS Altitude = " + String(gps_data.altitude));
-    Serial.println("GPS latitude = " + String(gps_data.latitude));
-    Serial.println("GPS longitude = " + String(gps_data.longitude));
-    Serial.println("GPS satellites = " + String(gps_data.satellites));
-    Serial.println("");
-
   }
   
   // send message
@@ -143,9 +150,6 @@ void loop()
     outgoing.temperature = temperature; // get temperature
     // Pressure Data
 
-    float prs1 = pressure1.read_pressure();
-    float prs2 = pressure2.read_pressure();
-    float prs;
     if (abs(prs1 - prs2) > .25 * prs1) {
       if (abs(altitude1 - altitude) > abs(altitude2 - altitude)) {
         prs = prs2;

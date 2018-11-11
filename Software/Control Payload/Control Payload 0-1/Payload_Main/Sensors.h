@@ -31,7 +31,7 @@ class pressure_sensor {
     pressure_sensor(ms5803_addr);
     //pressure_sensor(MS5803&);
     float read_pressure();
-    float find_altitude();
+    float find_altitude(float);
 
     void create_sensor(int);
     void initialize_sensor();
