@@ -255,7 +255,7 @@ struct Outgoing_Data
 
 //Functions
 void setup_Communications(void);
-void call_iridium(int);
+bool call_iridium(int);
 void send_message(int);
 void encode_message (struct Outgoing_Data*);
 void decode_message (struct Incoming_Data*);

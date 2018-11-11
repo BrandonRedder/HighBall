@@ -57,6 +57,7 @@ double initial_long;
 
 struct Incoming_Data incoming;
 struct Outgoing_Data outgoing;
+bool message_sent;
 
 void setup()
 {
@@ -102,6 +103,7 @@ void setup()
   incoming.update_rate = (5 * 60);
   incoming.manual_adjust = 0;
   incoming.control_mode = 1;
+  message_sent = false;
 }
 
 
@@ -154,7 +156,8 @@ void loop()
   }
   
   // send message
-  if ((millis() - sendTime) / 1000 >= incoming.update_rate) {
+  if ((millis() - sendTime) / 1000 >= 120) {
+    Serial.println("Start Send");
     // Temperature Data
     outgoing.temperature = temperature; // get temperature
     // Pressure Data
@@ -189,10 +192,10 @@ void loop()
     outgoing.emergency = 0; // no emergency settings
 
     encode_message(&outgoing);
-    call_iridium(10);
+    message_sent = call_iridium(10);
     delay(1000);
     decode_message(&incoming);
-
+    Serial.println("End Sende");
     sendTime = millis();
   }
 

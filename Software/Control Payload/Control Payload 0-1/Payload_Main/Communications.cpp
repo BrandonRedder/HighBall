@@ -42,25 +42,30 @@ bool messageSent = true;
 uint8_t buffer[30];
 
 //Call Iridium module from state machine 
-void call_iridium(int status) {
- // Check if the modulel is asleep/ responds
- int err = modem.sleep();
- if (err != ISBD_SUCCESS && err != ISBD_IS_ASLEEP) {
-	if (Testing) {
-	   Serial.print("Sleep failed: error ");
-	   Serial.println(err);
-   }
- } else {
-  send_message(10);
- }
+bool call_iridium(int status) {
+  // Check if the modulel is asleep/ responds
+//  int err = modem.begin();
+//  if (err != ISBD_SUCCESS && err != ISBD_ALREADY_AWAKE)
+//  {
+//    if (Testing) {
+//      Serial.print("Begin failed: error ");
+//      Serial.println(err);
+//      if (err == ISBD_NO_MODEM_DETECTED)
+//        Serial.println("No modem detected: check wiring.");
+//    }
+//    return false;
+//  } else {
+    send_message(10);
+    return messageSent;
+//  }
 }
 
 void send_message(int status) {
  size_t bufferSize = sizeof(buffer);
 	
  int err;
- err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
-
+ //err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
+ err = modem.sendSBDBinary(buffer, 30);
  if (err != ISBD_SUCCESS)
  {
    messageSent = false;
