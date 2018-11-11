@@ -8,6 +8,7 @@ void setup_Actuators(void) {
   HeliumServo.attach(7);
   HeliumServo.write(HeliumStartAngle);
   pinMode(BallastPin, OUTPUT);
+  digitalWrite(BallastPin, 0);
 }
 
 // Open helium vent by given percentage (0-1) for a given time period
@@ -62,7 +63,7 @@ void runBallastServo (void) {
   analogWrite(BallastPin, 154);
   delay(100);
 
-  analogWrite(BallastPin, 192);
+  digitalWrite(BallastPin, 0);
   delay(500);
 }
 
