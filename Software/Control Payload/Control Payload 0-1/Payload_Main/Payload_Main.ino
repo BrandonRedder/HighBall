@@ -289,6 +289,6 @@ void auto_cutdown(double initial_lat, double initial_long, double lat2, double l
 
 void cut_down(){
   analogWrite(CUT_DOWN,105);
-  delay(6000);
+  delay(40000);
   analogWrite(CUT_DOWN,0);
 }
