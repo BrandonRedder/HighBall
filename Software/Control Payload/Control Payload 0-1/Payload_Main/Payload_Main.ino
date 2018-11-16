@@ -107,7 +107,7 @@ void setup()
   setup_Communications();
   incoming.update_rate = (5 * 60);
   incoming.manual_adjust = 0;
-  incoming.control_mode = 1;
+  incoming.control_mode = MANUAL;
   message_sent = false;
 }
 
@@ -204,7 +204,27 @@ void loop()
     message_sent = call_iridium(10);
     delay(1000);
     decode_message(&incoming);
-    Serial.println("End Sende");
+    Serial.println("Helium Alpha: " + String(incoming.hel_alpha));
+    Serial.println("Helium Beta: " + String(incoming.hel_beta));
+    Serial.println("Helium Gamma: " + String(incoming.hel_gamma));
+    Serial.println("Ballast Alpha: " + String(incoming.bal_alpha));
+    Serial.println("Ballast Beta: " + String(incoming.bal_beta));
+    Serial.println("Ballast Gamma: " + String(incoming.bal_gamma));
+    Serial.println("Cutdown: " + String(incoming.cutdown));
+
+    control.set_min_altitude(incoming.altitude - incoming.altitude_buffer/2);
+    control.set_max_altitude(incoming.altitude + incoming.altitude_buffer/2);
+    
+    control.set_min_velocity(incoming.max_velocity);
+    // control.set_min_accel(incoming.altitude);
+    
+    control.set_bal_alpha(incoming.bal_alpha);
+    control.set_bal_beta(incoming.bal_beta);
+    control.set_bal_gamma(incoming.bal_gamma);
+    control.set_hel_alpha(incoming.hel_alpha);
+    control.set_hel_beta(incoming.hel_beta);
+    control.set_hel_gamma(incoming.hel_gamma);
+
     sendTime = millis();
   }
 
@@ -247,7 +267,6 @@ void loop()
     }
   }
 
-
   // Drop ballast if currently requested
   if (ballast_count > 0) {
     // drop ballast and decrement the count
@@ -261,6 +280,12 @@ void loop()
   if (helium_servo.ventTime < millis()  && helium_servo.open) {
     // close the helium vent after time runs out
     closeHeliumServo (&helium_servo);
+  }
+  
+  // Cutdown after getting signal
+  if (incoming.cutdown) {
+    // cutdown
+    cut_down();
   }
 }
 

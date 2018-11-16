@@ -194,6 +194,13 @@
 #define REC_MAN_AMT_OFFSET 154 
 #define REC_MAN_AMT_LENGTH 10
 
+
+// max velocity
+#define REC_VEL_MIN 0
+#define REC_VEL_STEP 1
+#define REC_VEL_OFFSET 164 
+#define REC_VEL_LENGTH 10
+
 // Structures
 struct Incoming_Data
 {
@@ -213,6 +220,7 @@ struct Incoming_Data
 	float bal_alpha;
 	float bal_beta;
 	float bal_gamma;
+  float max_velocity;
 	// Temperature Control
 	float temp;
 	// Control Mode

@@ -64,8 +64,8 @@ void send_message(int status) {
  size_t bufferSize = sizeof(buffer);
 	
  int err;
- //err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
- err = modem.sendSBDBinary(buffer, 30);
+ err = modem.sendReceiveSBDBinary(buffer, 30, buffer, bufferSize);
+ // err = modem.sendSBDBinary(buffer, 30);
  if (err != ISBD_SUCCESS)
  {
    messageSent = false;
@@ -176,6 +176,7 @@ void decode_message (struct Incoming_Data *data) {
   temp = decode_data (REC_MAN_SEL_MIN, REC_MAN_SEL_STEP, REC_MAN_SEL_OFFSET, REC_MAN_SEL_LENGTH);
   data->manual_select = temp > 0.5;
   data->manual_amount = (int)decode_data (REC_MAN_AMT_MIN, REC_MAN_AMT_STEP, REC_MAN_AMT_OFFSET, REC_MAN_AMT_LENGTH);
+  data->max_velocity = decode_data (REC_VEL_MIN, REC_VEL_STEP, REC_VEL_OFFSET, REC_VEL_LENGTH);
 }
 
 // Convert raw integer to compressed data type
