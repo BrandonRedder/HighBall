@@ -39,7 +39,7 @@ void setup_Communications(void)
 bool messageSent = true;
 
 // 30 Byte incoming and outgoing message buffer
-uint8_t buffer[30];
+uint8_t buffer[30] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 //Call Iridium module from state machine 
 bool call_iridium(int status) {
@@ -96,7 +96,17 @@ void send_message(int status) {
 }
 
 
-void encode_message (struct Outgoing_Data *data) {
+void encode_message (Outgoing_Data *data) {
+  Serial.println("start encode");
+  for (int i=0; i<30; ++i)
+  {
+    buffer[i] = 0x00;;
+  }
+  for (int i=0; i<30; ++i)
+  {
+    Serial.print(buffer[i], HEX);
+    Serial.print(" ");
+  }
   // Temperature Data 
   int new_temperature = convert_float((*data).temperature, TEMP_MIN, TEMP_STEP);
   encode_data (new_temperature, TEMP_OFFSET, TEMP_BITS);
@@ -138,45 +148,64 @@ void encode_message (struct Outgoing_Data *data) {
   encode_data ((*data).control_mode, CTRL_OFFSET, CTRL_BITS);
   // Emergency Data
   encode_data ((*data).emergency, EMRG_OFFSET, EMRG_BITS);
+  Serial.println("Done encoding");
+  for (int i=0; i<30; ++i)
+  {
+    Serial.print(buffer[i], HEX);
+    Serial.print(" ");
+  }
 }
 
-void decode_message (struct Incoming_Data *data) {
-  // Initiallize temporary float variable
-  float temp;
-  // Set recieved values using incoming message bits
-  data->altitude = decode_data (REC_ALT_MIN, REC_ALT_STEP, REC_ALT_OFFSET, REC_ALT_LENGTH);
-  data->altitude_buffer = decode_data (REC_ALT_BUF_MIN, REC_ALT_BUF_STEP, REC_ALT_BUF_OFFSET, REC_ALT_BUF_LENGTH);
-  //data->lat_degree = decode_data (REC_LAT_MIN, REC_LAT_STEP, REC_LAT_OFFSET, REC_LAT_LENGTH);
 
-  double lat1 = decode_data (0, 1, REC_LAT_OFFSET+10, REC_LAT_LENGTH-10);
-  double lat2 = decode_data (0, 1, REC_LAT_OFFSET, 10);
-  double lat_val = lat2*pow(2,REC_LONG_LENGTH-10) + lat1;
-  data->lat_deg = (lat_val*REC_LAT_STEP)+REC_LAT_MIN;
-
-  //data->long_deg = decode_data (REC_LONG_MIN, REC_LONG_STEP, REC_LONG_OFFSET, REC_LONG_LENGTH);
-
-  double long1 = decode_data (0, 1, REC_LONG_OFFSET+10, REC_LONG_LENGTH-10);
-  double long2 = decode_data (0, 1, REC_LONG_OFFSET, 10);
-  double long_val = long2*pow(2,REC_LONG_LENGTH-10) + long1;
-  data->long_deg = (long_val*REC_LONG_STEP)+REC_LONG_MIN;
+bool decode_message (Incoming_Data *data) {
+  Serial.println("start decode");
+  for (int i=0; i<30; ++i)
+  {
+    Serial.print(buffer[i], HEX);
+    Serial.print(" ");
+  }
   
-  temp = decode_data (REC_CUT_MIN, REC_CUT_STEP, REC_CUT_OFFSET, REC_CUT_LENGTH);
-  data->cutdown = temp > 2.5;
-  data->update_rate = (int)decode_data (REC_UPD_MIN, REC_UPD_STEP, REC_UPD_OFFSET, REC_UPD_LENGTH);
-  data->hel_alpha = decode_data (REC_HEL_A_MIN, REC_HEL_A_STEP, REC_HEL_A_OFFSET, REC_HEL_A_LENGTH);
-  data->hel_beta = decode_data (REC_HEL_B_MIN, REC_HEL_B_STEP, REC_HEL_B_OFFSET, REC_HEL_B_LENGTH);
-  data->hel_gamma = decode_data (REC_HEL_G_MIN, REC_HEL_G_STEP, REC_HEL_G_OFFSET, REC_HEL_G_LENGTH);
-  data->bal_alpha = decode_data (REC_BAL_A_MIN, REC_BAL_A_STEP, REC_BAL_A_OFFSET, REC_BAL_A_LENGTH);
-  data->bal_beta = decode_data (REC_BAL_B_MIN, REC_BAL_B_STEP, REC_BAL_B_OFFSET, REC_BAL_B_LENGTH);
-  data->bal_gamma = decode_data (REC_BAL_G_MIN, REC_BAL_G_STEP, REC_BAL_G_OFFSET, REC_BAL_G_LENGTH);
-  data->temp = decode_data (REC_TEMP_MIN, REC_TEMP_STEP, REC_TEMP_OFFSET, REC_TEMP_LENGTH);
-  data->control_mode = (int)decode_data (REC_CTRL_MIN, REC_CTRL_STEP, REC_CTRL_OFFSET, REC_CTRL_LENGTH);
-  temp = decode_data (REC_MAN_ADJ_MIN, REC_MAN_ADJ_STEP, REC_MAN_ADJ_OFFSET, REC_MAN_ADJ_LENGTH);
-  data->manual_adjust = temp > 0.5;
-  temp = decode_data (REC_MAN_SEL_MIN, REC_MAN_SEL_STEP, REC_MAN_SEL_OFFSET, REC_MAN_SEL_LENGTH);
-  data->manual_select = temp > 0.5;
-  data->manual_amount = (int)decode_data (REC_MAN_AMT_MIN, REC_MAN_AMT_STEP, REC_MAN_AMT_OFFSET, REC_MAN_AMT_LENGTH);
-  data->max_velocity = decode_data (REC_VEL_MIN, REC_VEL_STEP, REC_VEL_OFFSET, REC_VEL_LENGTH);
+  if (buffer[29] != 0xAA) {
+    // Initiallize temporary float variable
+    float temp;
+    // Set recieved values using incoming message bits
+    data->altitude = decode_data (REC_ALT_MIN, REC_ALT_STEP, REC_ALT_OFFSET, REC_ALT_LENGTH);
+    data->altitude_buffer = decode_data (REC_ALT_BUF_MIN, REC_ALT_BUF_STEP, REC_ALT_BUF_OFFSET, REC_ALT_BUF_LENGTH);
+    //data->lat_degree = decode_data (REC_LAT_MIN, REC_LAT_STEP, REC_LAT_OFFSET, REC_LAT_LENGTH);
+  
+    double lat1 = decode_data (0, 1, REC_LAT_OFFSET+10, REC_LAT_LENGTH-10);
+    double lat2 = decode_data (0, 1, REC_LAT_OFFSET, 10);
+    double lat_val = lat2*pow(2,REC_LONG_LENGTH-10) + lat1;
+    data->lat_deg = (lat_val*REC_LAT_STEP)+REC_LAT_MIN;
+  
+    //data->long_deg = decode_data (REC_LONG_MIN, REC_LONG_STEP, REC_LONG_OFFSET, REC_LONG_LENGTH);
+  
+    double long1 = decode_data (0, 1, REC_LONG_OFFSET+10, REC_LONG_LENGTH-10);
+    double long2 = decode_data (0, 1, REC_LONG_OFFSET, 10);
+    double long_val = long2*pow(2,REC_LONG_LENGTH-10) + long1;
+    data->long_deg = (long_val*REC_LONG_STEP)+REC_LONG_MIN;
+    
+    temp = decode_data (REC_CUT_MIN, REC_CUT_STEP, REC_CUT_OFFSET, REC_CUT_LENGTH);
+    data->cutdown = temp > 2.5;
+    data->update_rate = (int)decode_data (REC_UPD_MIN, REC_UPD_STEP, REC_UPD_OFFSET, REC_UPD_LENGTH);
+    data->hel_alpha = decode_data (REC_HEL_A_MIN, REC_HEL_A_STEP, REC_HEL_A_OFFSET, REC_HEL_A_LENGTH);
+    data->hel_beta = decode_data (REC_HEL_B_MIN, REC_HEL_B_STEP, REC_HEL_B_OFFSET, REC_HEL_B_LENGTH);
+    data->hel_gamma = decode_data (REC_HEL_G_MIN, REC_HEL_G_STEP, REC_HEL_G_OFFSET, REC_HEL_G_LENGTH);
+    data->bal_alpha = decode_data (REC_BAL_A_MIN, REC_BAL_A_STEP, REC_BAL_A_OFFSET, REC_BAL_A_LENGTH);
+    data->bal_beta = decode_data (REC_BAL_B_MIN, REC_BAL_B_STEP, REC_BAL_B_OFFSET, REC_BAL_B_LENGTH);
+    data->bal_gamma = decode_data (REC_BAL_G_MIN, REC_BAL_G_STEP, REC_BAL_G_OFFSET, REC_BAL_G_LENGTH);
+    data->temp = decode_data (REC_TEMP_MIN, REC_TEMP_STEP, REC_TEMP_OFFSET, REC_TEMP_LENGTH);
+    data->control_mode = (int)decode_data (REC_CTRL_MIN, REC_CTRL_STEP, REC_CTRL_OFFSET, REC_CTRL_LENGTH);
+    temp = decode_data (REC_MAN_ADJ_MIN, REC_MAN_ADJ_STEP, REC_MAN_ADJ_OFFSET, REC_MAN_ADJ_LENGTH);
+    data->manual_adjust = temp > 0.5;
+    temp = decode_data (REC_MAN_SEL_MIN, REC_MAN_SEL_STEP, REC_MAN_SEL_OFFSET, REC_MAN_SEL_LENGTH);
+    data->manual_select = temp > 0.5;
+    data->manual_amount = (int)decode_data (REC_MAN_AMT_MIN, REC_MAN_AMT_STEP, REC_MAN_AMT_OFFSET, REC_MAN_AMT_LENGTH);
+    data->max_velocity = decode_data (REC_VEL_MIN, REC_VEL_STEP, REC_VEL_OFFSET, REC_VEL_LENGTH);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // Convert raw integer to compressed data type
@@ -227,7 +256,7 @@ void encode_data (int data, int bit_offset, int bit_length) {
 
 float decode_data (float min, float step, int bit_offset, int bit_length) {
   // Decode binary data from buffer
-  int data;
+  int data = 0;
   int first_byte = bit_offset >> 3;
   int last_byte = (bit_offset + bit_length) >> 3;
   int first_bit;

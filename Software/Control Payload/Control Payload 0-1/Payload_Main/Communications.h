@@ -106,13 +106,13 @@
 
 // rec_lat_degree
 #define REC_LAT_MIN 18
-#define REC_LAT_STEP 1
+#define REC_LAT_STEP 0.000005
 #define REC_LAT_OFFSET 24
 #define REC_LAT_LENGTH 23
 
 // rec_long_deg
 #define REC_LONG_MIN -100
-#define REC_LONG_STEP 1
+#define REC_LONG_STEP 0.000005
 #define REC_LONG_OFFSET 47
 #define REC_LONG_LENGTH 23
 
@@ -194,10 +194,9 @@
 #define REC_MAN_AMT_OFFSET 154 
 #define REC_MAN_AMT_LENGTH 10
 
-
 // max velocity
 #define REC_VEL_MIN 0
-#define REC_VEL_STEP 1
+#define REC_VEL_STEP 0.01
 #define REC_VEL_OFFSET 164 
 #define REC_VEL_LENGTH 10
 
@@ -265,8 +264,8 @@ struct Outgoing_Data
 void setup_Communications(void);
 bool call_iridium(int);
 void send_message(int);
-void encode_message (struct Outgoing_Data*);
-void decode_message (struct Incoming_Data*);
+void encode_message (Outgoing_Data*);
+bool decode_message (Incoming_Data*);
 int convert_int (int, float, float);
 long convert_double (double, float, float);
 int convert_float (float, float, float);
