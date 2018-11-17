@@ -41,7 +41,7 @@
 #define ACC_THETA_BITS 10
 // GPS Data
 #define ALT_MIN 0
-#define ALT_STEP 3
+#define ALT_STEP 9
 #define ALT_OFFSET 59
 #define ALT_BITS 14
 
@@ -94,13 +94,13 @@
 // Recieved Data
 //rec_altitude
 #define REC_ALT_MIN 0
-#define REC_ALT_STEP 5
+#define REC_ALT_STEP 15
 #define REC_ALT_OFFSET 0
 #define REC_ALT_LENGTH 13
 
 // rec_altitude_buffer
 #define REC_ALT_BUF_MIN 0
-#define REC_ALT_BUF_STEP 5
+#define REC_ALT_BUF_STEP 15
 #define REC_ALT_BUF_OFFSET 13
 #define REC_ALT_BUF_LENGTH 11
 
