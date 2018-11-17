@@ -39,6 +39,9 @@ int ballast_count;
 unsigned long controlTime;
 unsigned long conditionTime;
 unsigned long sendTime;
+//unsigned long timer1;
+//bool hel = true;
+//bool bal = true;
 
 float temperature1=0;
 float temperature2=0;
@@ -81,9 +84,6 @@ void setup()
   imu.initialize_IMU();
   Serial.println("After IMU");
 */
-  controlTime = millis();
-  conditionTime = controlTime;
-  sendTime = controlTime;
   
   setup_Actuators();
   helium_servo.ventTime = controlTime;
@@ -99,13 +99,12 @@ void setup()
   temperature2 = pressure2.read_temperature();
   temperature = (temperature1 + temperature2) / 2.0;
 
-  
   gps_data = gps.read_GPS();         
   initial_lat = gps.get_lat();    
   initial_long = gps.get_long();
   
   setup_Communications();
-  incoming.update_rate = (5 * 60);
+  incoming.update_rate = 120;
   incoming.manual_adjust = 0;
   incoming.control_mode = MANUAL;
   incoming.cutdown = 0;
@@ -118,6 +117,11 @@ void setup()
   incoming.cutdown = 0;
   
   message_sent = false;
+
+  controlTime = millis();
+  conditionTime = controlTime;
+  sendTime = controlTime;
+//  timer1 = controlTime;
 }
 
 
@@ -174,7 +178,7 @@ void loop()
   }
   
   // send message
-  if ((millis() - sendTime) / 1000 >= 120) {
+  if ((millis() - sendTime) / 1000 >= incoming.update_rate) {
     Serial.println("Start Send");
     // Temperature Data
     outgoing.temperature = temperature; // get temperature
@@ -287,20 +291,41 @@ void loop()
     if (incoming.manual_select) {
       // set count of how many ballast drops during this control cycle
       ballast_count = (int) (incoming.manual_amount);
+      Serial.println("set ballast count");
     } else {
       // set helium vent end time
       helium_servo.ventTime = (unsigned long)(incoming.manual_amount*1000) + millis(); 
       // open helium 80%
-      openHeliumServo (&helium_servo, .8);
+      Serial.println("open helium");
+      openHeliumServo (&helium_servo, 1);
       // update helium used register
       heliumUsed = heliumUsed + incoming.manual_amount;
     }
   }
 
+//  if ((millis() - timer1)/1000 > 60  && hel )  {
+//    hel = false;
+//    Serial.println("adjust helium");
+//    incoming.control_mode = MANUAL;
+//    incoming.manual_adjust = true;
+//    incoming.manual_select = false;
+//    incoming.manual_amount = 5;
+//  }
+//
+//  if ((millis() - timer1)/1000 > 70  && bal )  {
+//    bal = false;
+//    Serial.println("adjust ballast");
+//    incoming.control_mode = MANUAL;
+//    incoming.manual_adjust = true;
+//    incoming.manual_select = true;
+//    incoming.manual_amount = 5;
+//  }
+
   // Drop ballast if currently requested
   if (ballast_count > 0) {
     // drop ballast and decrement the count
     runBallastServo();
+    Serial.println(ballast_count);
     ballast_count = ballast_count - 1;
     // update helium used register
     ballastUsed = ballastUsed + 1;
@@ -309,6 +334,7 @@ void loop()
   // Close helium vent after alloted time
   if (helium_servo.ventTime < millis()  && helium_servo.open) {
     // close the helium vent after time runs out
+    Serial.println("close helium");
     closeHeliumServo (&helium_servo);
   }
   

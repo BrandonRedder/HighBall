@@ -165,7 +165,8 @@ bool decode_message (Incoming_Data *data) {
     Serial.print(" ");
   }
   
-  if (buffer[29] != 0xAA) {
+  if (buffer[28] != 0x00) {
+    Serial.println("Got into the loop!");
     // Initiallize temporary float variable
     float temp;
     // Set recieved values using incoming message bits

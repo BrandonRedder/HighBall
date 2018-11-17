@@ -130,13 +130,13 @@
 
 // rec_hel_alpha
 #define REC_HEL_A_MIN 0
-#define REC_HEL_A_STEP .01
+#define REC_HEL_A_STEP .001
 #define REC_HEL_A_OFFSET 82
 #define REC_HEL_A_LENGTH 10
 
 // rec_hel_beta
 #define REC_HEL_B_MIN 0
-#define REC_HEL_B_STEP .01
+#define REC_HEL_B_STEP .1
 #define REC_HEL_B_OFFSET 92
 #define REC_HEL_B_LENGTH 10
 
@@ -148,13 +148,13 @@
 
 // rec_bal_alpha
 #define REC_BAL_A_MIN 0
-#define REC_BAL_A_STEP .01
+#define REC_BAL_A_STEP .001
 #define REC_BAL_A_OFFSET 112
 #define REC_BAL_A_LENGTH 10
 
 // rec_bal_beta 
 #define REC_BAL_B_MIN 0
-#define REC_BAL_B_STEP .01
+#define REC_BAL_B_STEP .1
 #define REC_BAL_B_OFFSET 122
 #define REC_BAL_B_LENGTH 10
 
