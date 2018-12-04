@@ -221,10 +221,6 @@ while Bal > 0 && count < 40000 && Pressure < 950
             deltaAlt = 0;
         end
         
-%         midAlt = (maxAlt - minAlt)+minAlt;
-%         midDif = abs(alt- midAlt)/(maxAlt-minAlt)/2;
-%         minVel2 = minVel*midDif;
-        
         if Vf > minVel || Vf < -minVel
             Vel = Vf;
         else
